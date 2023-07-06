@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.boll.audiolib.view.LrcView
+        android:id="@+id/lrc_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:lrcAnimationDuration="500"
+        app:lrcCurrentTextColor="#076FB5"
+        app:lrcDividerHeight="20dp"
+        app:lrcLabel="字幕加载中..."
+        app:lrcNormalTextColor="@color/white"
+        app:lrcNormalTextSize="16sp"
+        app:lrcPadding="20dp"
+        app:lrcTextGravity="center"
+        app:lrcTextSize="20sp"
+        app:lrcTimeTextColor="#BDBDBD"
+        app:lrcTimelineColor="#80BDBDBD"
+        app:lrcTimelineTextColor="#9FA8DA"
+        android:visibility="visible"/>
+
+</LinearLayout>

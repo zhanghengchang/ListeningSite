@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 调用两个xml文件分别作为开关状态下的样式 -->
+    <item android:drawable="@drawable/track_on" android:state_checked="true" />
+    <item android:drawable="@drawable/track_off" android:state_checked="false" />
+</selector>

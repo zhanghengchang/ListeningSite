@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">听力场</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="key_custom_context">custom_context</string>
+    <string name="key_recognize_profile">recognize_profile</string>
+    <string name="key_custom_context_enabled">custom_context_enabled</string>
+    <string name="key_app_migu">app_migu</string>
+    <string name="key_background_recognize">background_recognize</string>
+    <string name="key_disable_response_sound">disable_response_sound</string>
+    <string name="key_custom_location">custom_location</string>
+    <string name="key_latitude">latitude</string>
+    <string name="key_longitude">longitude</string>
+    <string name="key_list_codec">evs_codec_format</string>
+</resources>

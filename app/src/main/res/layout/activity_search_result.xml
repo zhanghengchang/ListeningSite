@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".activity.SearchResultActivity"
+    android:orientation="vertical"
+    android:background="@mipmap/background_play">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/icon_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/icon_back"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+        <com.boll.audiobook.hear.view.MarqueeTextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="搜索结果"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:textColor="@color/C_4E4E4E"
+            android:textStyle="bold"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/layout_bg_subcategory_list"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/ll_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_marginTop="45dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/bg_empty"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="啊哦，没有找到相关内容哦"
+                android:textSize="12sp"
+                android:textColor="@color/C_AAAAAA"/>
+
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/ll_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="visible"
+                android:focusableInTouchMode="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tv_result"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/C_FFA271"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginLeft="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginLeft="12dp">
+
+                    <LinearLayout
+                        android:id="@+id/ll_album"
+                        android:layout_width="74dp"
+                        android:layout_height="24dp"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_search_selected"
+                        android:paddingLeft="14dp">
+
+                        <ImageView
+                            android:id="@+id/icon_album"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@mipmap/icon_album_selected"
+                            android:layout_gravity="center_vertical" />
+
+                        <TextView
+                            android:id="@+id/tv_album"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="专辑"
+                            android:textSize="14sp"
+                            android:textColor="@color/white"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginLeft="5dp"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/ll_audio"
+                        android:layout_width="74dp"
+                        android:layout_height="24dp"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_search_normal"
+                        android:paddingLeft="14dp"
+                        android:layout_marginLeft="14dp">
+
+                        <ImageView
+                            android:id="@+id/icon_audio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@mipmap/icon_audio_normal"
+                            android:layout_gravity="center_vertical" />
+
+                        <TextView
+                            android:id="@+id/tv_audio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="音频"
+                            android:textSize="14sp"
+                            android:textColor="@color/C_CCCCCC"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginLeft="5dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/fl_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>
