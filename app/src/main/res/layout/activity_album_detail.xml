@@ -7,7 +7,7 @@
     tools:context=".activity.AlbumDetailActivity"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:background="@color/white">
+    android:background="@mipmap/background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,7 +30,7 @@
             android:text=""
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="@color/C_4E4E4E"
+            android:textColor="@color/C_4D4D4D"
             android:textStyle="bold"
             android:ellipsize="marquee"
             android:singleLine="true"/>
@@ -140,6 +140,8 @@
                         android:layout_height="wrap_content"
                         android:text=""
                         android:textSize="14sp"
+                        android:textColor="@color/C_999999"
+                        android:textStyle="bold"
                         android:gravity="left"
                         android:layout_marginLeft="6dp"/>
 
@@ -148,8 +150,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="全部下载"
-                        android:textColor="@color/C_1DCFFF"
-                        android:textSize="12sp"/>
+                        android:textColor="@color/C_1BCB79"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 

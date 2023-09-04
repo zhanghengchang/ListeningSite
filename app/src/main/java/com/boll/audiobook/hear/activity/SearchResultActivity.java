@@ -87,23 +87,23 @@ public class SearchResultActivity extends BaseActivity implements View.OnClickLi
     }
 
     private void updateAlbumOrAudio(View view) {
-        llAlbum.setBackgroundResource(R.drawable.bg_search_normal);
+        llAlbum.setBackgroundResource(R.drawable.bg_normal_left);
         iconAlbum.setImageResource(R.mipmap.icon_album_normal);
-        tvAlbum.setTextColor(getResources().getColor(R.color.C_CCCCCC));
-        llAudio.setBackgroundResource(R.drawable.bg_search_normal);
-        iconAudio.setImageResource(R.mipmap.icon_album_normal);
-        tvAudio.setTextColor(getResources().getColor(R.color.C_CCCCCC));
+        tvAlbum.setTextColor(getResources().getColor(R.color.C_999999));
+        llAudio.setBackgroundResource(R.drawable.bg_normal_right);
+        iconAudio.setImageResource(R.mipmap.icon_audio_normal);
+        tvAudio.setTextColor(getResources().getColor(R.color.C_999999));
 
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
 
         if (view.getId() == R.id.ll_album) {
-            llAlbum.setBackgroundResource(R.drawable.bg_search_selected);
+            llAlbum.setBackgroundResource(R.drawable.bg_selected_left);
             iconAlbum.setImageResource(R.mipmap.icon_album_selected);
             tvAlbum.setTextColor(getResources().getColor(R.color.white));
             fragmentTransaction.hide(audioFragment).show(albumFragment);
         } else {
-            llAudio.setBackgroundResource(R.drawable.bg_search_selected);
-            iconAudio.setImageResource(R.mipmap.icon_album_selected);
+            llAudio.setBackgroundResource(R.drawable.bg_selected_right);
+            iconAudio.setImageResource(R.mipmap.icon_audio_selected);
             tvAudio.setTextColor(getResources().getColor(R.color.white));
             fragmentTransaction.hide(albumFragment).show(audioFragment);
         }

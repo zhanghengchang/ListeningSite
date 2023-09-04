@@ -61,7 +61,7 @@
         android:gravity="center"
         android:text="暂无字幕"
         android:textSize="16sp"
-        android:textColor="#076FB5"/>
+        android:textColor="#FFE603"/>
 
     <com.boll.audiobook.hear.view.AudioProgressBar
         android:id="@+id/audioProgress"

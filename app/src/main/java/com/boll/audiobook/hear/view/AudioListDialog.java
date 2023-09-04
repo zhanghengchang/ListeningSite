@@ -3,6 +3,7 @@ package com.boll.audiobook.hear.view;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -15,10 +16,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.boll.audiobook.hear.R;
 import com.boll.audiobook.hear.activity.PlayActivity;
 import com.boll.audiobook.hear.adapter.AudioAdapter;
 import com.boll.audiobook.hear.entity.AudioBean;
-import com.boll.audiobook.hear.R;
 import com.boll.audiobook.hear.network.response.AudioResponse;
 import com.boll.audiobook.hear.service.PlayService;
 
@@ -28,7 +29,7 @@ import java.util.List;
  * 听力场音频选集
  * created by zoro at 2023/5/26
  */
-public class AudioListDialog extends BaseDialog {
+public class AudioListDialog extends BaseDialog implements PlayService.OnCurrentPlayIdListener {
 
     private Context mContext;
     private Activity mActivity;
@@ -68,20 +69,17 @@ public class AudioListDialog extends BaseDialog {
         }
         mAudioAdapter.notifyDataSetChanged();
 
-        mPlayService.setOnCurrentPlayIdListener(new PlayService.OnCurrentPlayIdListener() {
+        this.setOnDismissListener(new OnDismissListener() {
             @Override
-            public void onCurrentPlayId(int currentId) {
-                for (int i = 0; i < mAudioList.size(); i++) {
-                    int id = mAudioList.get(i).getId();
-                    if (id == currentId) {
-                        mAudioBeans.get(i).setPlaying(true);
-                    } else {
-                        mAudioBeans.get(i).setPlaying(false);
-                    }
-                }
-                mAudioAdapter.notifyDataSetChanged();
+            public void onDismiss(DialogInterface dialog) {
+                mPlayService.removeOnCurrentPlayIdListener(AudioListDialog.this);
             }
         });
+    }
+
+    public void showDialog(){
+        this.show();
+        mPlayService.addOnCurrentPlayIdListener(this);
     }
 
     private void initView() {
@@ -98,7 +96,7 @@ public class AudioListDialog extends BaseDialog {
         Dialog dialog = this;
         if (dialog != null) {
             // 设置弹框大小
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (dm.heightPixels * 0.9));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (dm.heightPixels * 0.8));
         }
         tvResCount = findViewById(R.id.tv_resCount);
         audioListView = findViewById(R.id.audioListView);
@@ -125,4 +123,16 @@ public class AudioListDialog extends BaseDialog {
         });
     }
 
+    @Override
+    public void onCurrentPlayId(int currentId) {
+        for (int i = 0; i < mAudioList.size(); i++) {
+            int id = mAudioList.get(i).getId();
+            if (id == currentId) {
+                mAudioBeans.get(i).setPlaying(true);
+            } else {
+                mAudioBeans.get(i).setPlaying(false);
+            }
+        }
+        mAudioAdapter.notifyDataSetChanged();
+    }
 }

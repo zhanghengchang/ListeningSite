@@ -138,8 +138,7 @@ public class RecordUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        PcmToMp3Util.pcmToMp3(position,true);
-        PcmToWavUtil.getInstance().pcmToWav(position, true);
+        PcmToWavUtil.getInstance().pcmToWav(position, false);
     }
 
     /**

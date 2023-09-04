@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * 我的作品播放
+ */
 public class MyWorkPlayActivity extends BaseActivity implements View.OnClickListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener {
@@ -300,7 +303,7 @@ public class MyWorkPlayActivity extends BaseActivity implements View.OnClickList
 
         if (mWorkListBeans != null && mWorkListBeans.size() > 0) {
             if (PlayService.getInstance().isPlaying()) {
-                PlayService.getInstance().pause();
+                PlayService.getInstance().pauseAudio();
             }
             localAudioBeans = new ArrayList<>();
             for (int i = 0; i < mWorkListBeans.size(); i++) {

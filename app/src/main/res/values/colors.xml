@@ -21,5 +21,12 @@
     <color name="C_CCCCCC">#CCCCCC</color>
     <color name="C_E5E5E5">#E5E5E5</color>
     <color name="C_FFA271">#FFA271</color>
+    <color name="C_1BCB79">#1BCB79</color>
+    <color name="C_999999">#999999</color>
+    <color name="C_4D4D4D">#4D4D4D</color>
+    <color name="C_666666">#666666</color>
+    <color name="C_E7E7E7">#E7E7E7</color>
+    <color name="C_17C172">#17C172</color>
+    <color name="C_CCFFFFFF">#CCFFFFFF</color>
 
 </resources>

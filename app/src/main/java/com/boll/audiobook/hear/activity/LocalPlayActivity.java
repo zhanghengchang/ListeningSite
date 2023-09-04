@@ -306,7 +306,7 @@ public class LocalPlayActivity extends BaseActivity implements MediaPlayer.OnErr
 
         if (playPathList != null && playPathList.size() > 0) {
             if (PlayService.getInstance().isPlaying()) {
-                PlayService.getInstance().pause();
+                PlayService.getInstance().pauseAudio();
             }
             for (int i = 0; i < playPathList.size(); i++) {
                 playPath = playPathList.get(i);

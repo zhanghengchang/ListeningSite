@@ -23,8 +23,8 @@
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="听力场"
-            android:textSize="17sp"
+            android:text="课外精听"
+            android:textSize="20sp"
             android:textColor="@color/C_4E4E4E"
             android:textStyle="bold"/>
 

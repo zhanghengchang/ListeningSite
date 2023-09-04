@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activity.SubcategoryActivity"
     android:orientation="vertical"
-    android:background="@mipmap/background_play">
+    android:background="@mipmap/background_subcategory">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:id="@+id/icon_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@mipmap/icon_back"/>
+            android:src="@mipmap/icon_back1"/>
 
         <com.boll.audiobook.hear.view.MarqueeTextView
             android:id="@+id/tv_title"
@@ -28,7 +28,7 @@
             android:text=""
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="@color/C_4E4E4E"
+            android:textColor="@color/white"
             android:textStyle="bold"
             android:ellipsize="marquee"
             android:singleLine="true"

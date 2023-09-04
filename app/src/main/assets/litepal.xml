@@ -3,6 +3,6 @@
     <dbname value="data" />
     <version value="1" />
     <list>
-        <mapping class="com.boll.audiobook.hear.litepal.DownloadAudio"/>
+        <mapping class="com.boll.audiobook.hear.room.DownloadAudio"/>
     </list>
 </litepal>

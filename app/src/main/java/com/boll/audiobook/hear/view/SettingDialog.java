@@ -299,17 +299,17 @@ public class SettingDialog extends BaseDialog implements View.OnClickListener {
      * @param view
      */
     private void setRepeat(View view) {
-        tvRepeat1.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvRepeat2.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvRepeat3.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvRepeat4.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvRepeat5.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
+        tvRepeat1.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvRepeat2.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvRepeat3.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvRepeat4.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvRepeat5.setTextColor(mContext.getResources().getColor(R.color.C_666666));
 
-        tvRepeat1.setBackground(null);
-        tvRepeat2.setBackground(null);
-        tvRepeat3.setBackground(null);
-        tvRepeat4.setBackground(null);
-        tvRepeat5.setBackground(null);
+        tvRepeat1.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvRepeat2.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvRepeat3.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvRepeat4.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvRepeat5.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
 
         ((TextView) view).setTextColor(mContext.getResources().getColor(R.color.white));
         view.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_seleted));
@@ -341,17 +341,17 @@ public class SettingDialog extends BaseDialog implements View.OnClickListener {
      * @param view
      */
     private void setInterval(View view) {
-        tvInterval1.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvInterval2.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvInterval3.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvInterval4.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
-        tvInterval5.setTextColor(mContext.getResources().getColor(R.color.C_AAAAAA));
+        tvInterval1.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvInterval2.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvInterval3.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvInterval4.setTextColor(mContext.getResources().getColor(R.color.C_666666));
+        tvInterval5.setTextColor(mContext.getResources().getColor(R.color.C_666666));
 
-        tvInterval1.setBackground(null);
-        tvInterval2.setBackground(null);
-        tvInterval3.setBackground(null);
-        tvInterval4.setBackground(null);
-        tvInterval5.setBackground(null);
+        tvInterval1.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvInterval2.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvInterval3.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvInterval4.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
+        tvInterval5.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_normal));
 
         ((TextView) view).setTextColor(mContext.getResources().getColor(R.color.white));
         view.setBackground(mContext.getResources().getDrawable(R.drawable.bg_tv_seleted));

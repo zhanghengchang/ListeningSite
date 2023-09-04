@@ -8,8 +8,10 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.room.Room;
 
-import org.litepal.LitePal;
+import com.boll.audiobook.hear.room.DownloadDao;
+import com.boll.audiobook.hear.room.DownloadDb;
 
 /**
  * 下载内容保存
@@ -21,12 +23,17 @@ public class DownloadProvider extends ContentProvider {
     private static final String AUTHORITES = "com.boll.audiobook.hear.contentprovider.downloadprovider";
     private static final int QUERY = 1; //查询
 
+    private DownloadDb downloadDb;
+    private DownloadDao downloadDao;
+
     static { //添加有效的URI及其编码
         sUriMatcher.addURI(AUTHORITES, "/query", QUERY);
     }
 
     @Override
     public boolean onCreate() {
+        downloadDb = Room.databaseBuilder(getContext(),DownloadDb.class,"download-db").build();
+        downloadDao = downloadDb.downloadDao();
         return false;
     }
 
@@ -35,7 +42,8 @@ public class DownloadProvider extends ContentProvider {
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         int code = sUriMatcher.match(uri);
         if (code == QUERY) {
-            Cursor cursor = LitePal.findBySQL("select * from downloadaudio");
+//            Cursor cursor = LitePal.findBySQL("select * from downloadaudio");
+            Cursor cursor = downloadDao.getAll();
             return cursor;
         }
         return null;

@@ -5,27 +5,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.boll.audiolib.util.DownloadUtil;
-import com.boll.audiolib.util.TimeUtil;
-import com.boll.audiobook.hear.activity.PlayActivity;
+import com.boll.audiobook.hear.audio.util.TimeUtil;
 import com.boll.audiobook.hear.network.request.DurationRequest;
 import com.boll.audiobook.hear.network.response.BaseResponse;
 import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
 import com.boll.audiobook.hear.utils.Const;
 import com.boll.audiobook.hear.utils.SaveDataUtil;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import rx.functions.Action1;
 
@@ -43,7 +40,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     public boolean hasPrepared;
 
     private OnStateListener mOnStateListener;
-    private OnCurrentPlayIdListener mOnCurrentPlayIdListener;
+    private List<OnCurrentPlayIdListener> mOnCurrentPlayIdListeners = new ArrayList<>();
 
     public int abState;//AB复读键的状态 0：未选中 1：选择A点 2：选择B点
     public boolean isSingle;//是否选中单句复读
@@ -71,27 +68,25 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
 
     private ListenerLoader mListenerLoader;
 
-    //计时定时关闭
-    private Handler mHandler = new Handler(new Handler.Callback() {
+    private Handler mHandler = new Handler(Looper.getMainLooper(),new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message msg) {
+            //计时定时关闭
             if (msg.what == TIMING_CODE) {
                 int timingClose = SaveDataUtil.getInstance(mContext).getInt("timingClose", 1);
                 long startTiming = SaveDataUtil.getInstance(mContext).getLong("startTiming", 0);
                 long endTiming = System.currentTimeMillis();
-//                long timeDiff = endTiming - startTiming;
                 if (timingClose == 1 || timingClose == 2
-                || timingClose == 3 || timingClose == 4) {
+                        || timingClose == 3 || timingClose == 4) {
                     Log.d(TAG, "未设置定时关闭时间");
                 } else {
-//                    int diff = TimeUtil.diffToMin(timeDiff);
-                    int diff = TimeUtil.getDiffTime(startTiming,endTiming);
+                    int diff = TimeUtil.getDiffTimeMin(startTiming, endTiming);
                     Log.d(TAG, "已经播放: " + diff + "分钟");
                     if ((timingClose == 5 && diff >= 15)
                             || (timingClose == 6 && diff >= 20)
                             || (timingClose == 7 && diff >= 30)
                             || (timingClose == 8 && diff >= 60)) {
-                        if(mPlayer != null){
+                        if (mPlayer != null) {
                             mPlayer.pause();
                         }
                         //记录是计时暂停 置一个标记
@@ -172,33 +167,35 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     public void play(String url, int id) {
         float speed = SaveDataUtil.getInstance(mContext).getFloat("playSpeed", 1.0f);
         Log.d(TAG, "playUrl: " + url);
-        String[] strings = url.split("\\?");
-        String path = "";
-        if (strings.length == 2) {
-            path = strings[0];
-            String[] split = path.split("/");
-            String fileName = split[split.length - 1];
-            if (DownloadUtil.existsFile(Const.MP3PATH + fileName)) {
-                path = Const.MP3PATH + fileName;
-            } else {
-                path = url;
-            }
-        }
-        Log.d(TAG, "playPath: " + path);
+//        String[] strings = url.split("\\?");
+//        String path = "";
+//        if (strings.length == 2) {
+//            path = strings[0];
+//            String[] split = path.split("/");
+//            String fileName = split[split.length - 1];
+//            if (DownloadUtil.existsFile(Const.MP3PATH + fileName)) {
+//                path = Const.MP3PATH + fileName;
+//            } else {
+//                path = url;
+//            }
+//        }
+//        Log.d(TAG, "playPath: " + path);
 
         hasPrepared = false;// 开始播放前将flag置为不可操作
         currentId = id;
-        if (mOnCurrentPlayIdListener != null){
-            mOnCurrentPlayIdListener.onCurrentPlayId(id);
+        if (mOnCurrentPlayIdListeners.size() > 0) {
+            for (int i = 0; i < mOnCurrentPlayIdListeners.size(); i++) {
+                mOnCurrentPlayIdListeners.get(i).onCurrentPlayId(id);
+            }
         }
         initIfNecessary();
-        String finalPath = path;
+//        String finalPath = path;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     mPlayer.reset();
-                    mPlayer.setDataSource(finalPath);
+                    mPlayer.setDataSource(url);
                     mPlayer.prepareAsync();
                     setPlayerSpeed(speed);
                 } catch (IOException e) {
@@ -222,8 +219,8 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     /**
      * 上一曲
      */
-    public void playLeft(){
-        if (null != mPlayer && hasPrepared){
+    public void playLeft() {
+        if (null != mPlayer && hasPrepared) {
             mOnStateListener.onPlayLeft();
         }
     }
@@ -231,9 +228,27 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     /**
      * 下一曲
      */
-    public void playRight(){
-        if (null != mPlayer && hasPrepared){
+    public void playRight() {
+        if (null != mPlayer && hasPrepared) {
             mOnStateListener.onPlayRight();
+        }
+    }
+
+    /**
+     * 上一句
+     */
+    public void playSentenceLeft() {
+        if (null != mPlayer && hasPrepared) {
+            mOnStateListener.onSentenceLeft();
+        }
+    }
+
+    /**
+     * 下一句
+     */
+    public void playSentenceRight() {
+        if (null != mPlayer && hasPrepared) {
+            mOnStateListener.onSentenceRight();
         }
     }
 
@@ -244,9 +259,9 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
         if (null != mPlayer && hasPrepared) {
             boolean lastPause = SaveDataUtil.getInstance(mContext).getBoolean("isTimingPause", false);
             long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
-            if (playStartTime == 0){
+            if (playStartTime == 0) {
                 long startTime = System.currentTimeMillis();
-                SaveDataUtil.getInstance(mContext).putLong("playStartTime",startTime);
+                SaveDataUtil.getInstance(mContext).putLong("playStartTime", startTime);
             }
             if (lastPause) {
                 Log.e(TAG, "继续播放 重新计时");
@@ -261,36 +276,49 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     }
 
     /**
-     * 暂停
+     * 暂停并上传本次听音时长
      */
     public void pause() {
         if (null != mPlayer && hasPrepared) {
             long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
             long endTime = System.currentTimeMillis();
-//            long timeDiff = endTime - playStartTime;
-//            int diff = TimeUtil.diffToMin(timeDiff);
-            int diff = TimeUtil.getDiffTime(playStartTime,endTime);
-            if (diff > 1){
-                DurationRequest request = new DurationRequest();
-                request.setDuration(diff);
-                mListenerLoader = ListenerLoader.getInstance();
-                mListenerLoader.addAudioDuration(request).subscribe(new Action1<BaseResponse>() {
-                    @Override
-                    public void call(BaseResponse response) {
-                        if (response.getCode() == 0){
-                            Log.e(TAG, "已上报听音时长" + diff + "分钟");
-                        }else {
-                            Log.e(TAG,response.getMsg());
+            if (playStartTime != 0){
+                int diff = TimeUtil.getDiffTimeMin(playStartTime, endTime);
+                Log.e(TAG, "diff: " + diff);
+                if (diff > 1) {
+                    int diffSec = TimeUtil.getDiffTimeSec(playStartTime, endTime);
+                    Log.e(TAG, "playStartTime: " + playStartTime + ",endTime: " + endTime);
+                    DurationRequest request = new DurationRequest();
+                    request.setDuration(diffSec);
+                    mListenerLoader = ListenerLoader.getInstance();
+                    SaveDataUtil.getInstance(mContext).putLong("playStartTime", 0);
+                    mListenerLoader.addAudioDuration(request).subscribe(new Action1<BaseResponse>() {
+                        @Override
+                        public void call(BaseResponse response) {
+                            if (response.getCode() == 0) {
+                                Log.e(TAG, "已上报听音时长" + diffSec + "秒");
+                            } else {
+                                Log.e(TAG, response.getMsg());
+                            }
                         }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
-                SaveDataUtil.getInstance(mContext).putLong("playStartTime",0);
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            throwable.printStackTrace();
+                        }
+                    });
+                }
             }
+            mPlayer.pause();
+            isPause = true;
+        }
+    }
+
+    /**
+     * 单纯暂停播放
+     */
+    public void pauseAudio() {
+        if (null != mPlayer && hasPrepared) {
             mPlayer.pause();
             isPause = true;
         }
@@ -299,11 +327,11 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     /**
      * 播放当前句子
      */
-    public void playCurrent(){
+    public void playCurrent() {
         if (null != mPlayer && hasPrepared) {
             isFollow = true;
             mPlayer.seekTo((int) currentStartTime);
-            if (!mPlayer.isPlaying()){
+            if (!mPlayer.isPlaying()) {
                 mPlayer.start();
             }
         }
@@ -311,6 +339,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
 
     /**
      * 判断是否暂停
+     *
      * @return
      */
     public boolean isPause() {
@@ -319,6 +348,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
 
     /**
      * 跳转制定位置播放
+     *
      * @param position
      */
     public void seekTo(int position) {
@@ -358,6 +388,13 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
         return 0;
     }
 
+    public long getDuration(){
+        if (null != mPlayer && hasPrepared) {
+            return mPlayer.getDuration();
+        }
+        return 0;
+    }
+
     @Override
     public void onPrepared(MediaPlayer mp) {
         hasPrepared = true;
@@ -366,8 +403,8 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if (hasPrepared){
-            hasPrepared = false;
+        if (hasPrepared) {
+//            hasPrepared = false;
             mOnStateListener.onCompletion();
         }
     }
@@ -375,6 +412,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         hasPrepared = false;
+        Log.e(TAG, "onError: " + what);
         return false;
     }
 
@@ -387,29 +425,40 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
         mOnStateListener = onStateListener;
     }
 
-    public void setOnCurrentPlayIdListener(OnCurrentPlayIdListener onCurrentPlayIdListener) {
-        mOnCurrentPlayIdListener = onCurrentPlayIdListener;
+    public void addOnCurrentPlayIdListener(OnCurrentPlayIdListener onCurrentPlayIdListener) {
+        mOnCurrentPlayIdListeners.add(onCurrentPlayIdListener);
+    }
+
+    public void removeOnCurrentPlayIdListener(OnCurrentPlayIdListener onCurrentPlayIdListener) {
+        mOnCurrentPlayIdListeners.remove(onCurrentPlayIdListener);
     }
 
     public interface OnStateListener {
 
         /**
          * 一曲播放结束
-         *
          */
         void onCompletion();
 
         /**
          * 播放上一曲
-         *
          */
         void onPlayLeft();
 
         /**
          * 播放下一曲
-         *
          */
         void onPlayRight();
+
+        /**
+         * 播放上一句
+         */
+        void onSentenceLeft();
+
+        /**
+         * 播放下一句
+         */
+        void onSentenceRight();
     }
 
     public interface OnCurrentPlayIdListener {

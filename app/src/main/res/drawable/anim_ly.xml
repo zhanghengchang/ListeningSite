@@ -6,5 +6,7 @@
     <item android:drawable="@mipmap/ly2" android:duration="100"/>
     <item android:drawable="@mipmap/ly3" android:duration="100"/>
     <item android:drawable="@mipmap/ly4" android:duration="100"/>
+    <item android:drawable="@mipmap/ly5" android:duration="100"/>
+    <item android:drawable="@mipmap/ly6" android:duration="100"/>
 
 </animation-list>

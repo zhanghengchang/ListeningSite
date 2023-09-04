@@ -1,57 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.PlayActivity"
+    android:background="@mipmap/background_play"
     android:orientation="vertical"
-    android:background="@mipmap/background_play">
+    tools:context=".activity.PlayActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical">
+        android:padding="12dp">
 
         <ImageView
             android:id="@+id/icon_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@mipmap/icon_back"
-            app:layout_constraintTop_toTopOf="parent"
+            android:src="@mipmap/icon_back1"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"/>
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.boll.audiobook.hear.view.MarqueeTextView
             android:id="@+id/tv_title"
-            android:layout_width="120dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="18sp"
-            android:gravity="center"
-            android:textColor="@color/C_4E4E4E"
-            android:textStyle="bold"
             android:ellipsize="marquee"
+            android:gravity="center"
             android:singleLine="true"
-            app:layout_constraintTop_toTopOf="parent"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"/>
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/icon_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/icon_setting"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingLeft="10dp"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"/>
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -61,13 +57,14 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:visibility="visible"/>
+        android:visibility="visible" />
 
     <com.boll.audiolib.view.LrcView
         android:id="@+id/lrc_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:visibility="gone"
         app:lrcAnimationDuration="500"
         app:lrcCurrentTextColor="#076FB5"
         app:lrcDividerHeight="20dp"
@@ -79,13 +76,12 @@
         app:lrcTextSize="20sp"
         app:lrcTimeTextColor="#BDBDBD"
         app:lrcTimelineColor="#80BDBDBD"
-        app:lrcTimelineTextColor="#9FA8DA"
-        android:visibility="gone"/>
+        app:lrcTimelineTextColor="#9FA8DA" />
 
     <com.boll.audiobook.hear.view.AudioProgressBar
         android:id="@+id/audioProgress"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -102,8 +98,8 @@
                 android:id="@+id/ll_audio_collect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:padding="4dp">
 
                 <ImageView
@@ -115,126 +111,126 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="收藏"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp"/>
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
             <View
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="1dp"/>
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <LinearLayout
                 android:id="@+id/ll_follow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:padding="4dp">
 
                 <ImageView
                     android:id="@+id/icon_follow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_follow"/>
+                    android:src="@mipmap/icon_follow" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="跟读"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp"/>
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
             <View
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="1dp"/>
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <LinearLayout
                 android:id="@+id/ll_ab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:padding="4dp">
 
                 <ImageView
                     android:id="@+id/icon_ab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_ab_normal"/>
+                    android:src="@mipmap/icon_ab_normal" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="A-B"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp"/>
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
             <View
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="1dp"/>
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <LinearLayout
                 android:id="@+id/ll_single"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:padding="4dp">
 
                 <ImageView
                     android:id="@+id/icon_single"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_single_normal"/>
+                    android:src="@mipmap/icon_single_normal" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="复读"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp"/>
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
             <View
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="1dp"/>
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <LinearLayout
                 android:id="@+id/ll_audio_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:padding="4dp">
 
                 <ImageView
                     android:id="@+id/icon_audio_list"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_audio_list"/>
+                    android:src="@mipmap/icon_audio_list" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="列表"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp"/>
+                    android:textSize="14sp" />
 
             </LinearLayout>
 

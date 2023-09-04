@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.boll.audiobook.hear.R;
 import com.boll.audiobook.hear.adapter.AlbumAdapter;
+import com.boll.audiobook.hear.contentprovider.DownloadProvider;
 import com.boll.audiobook.hear.entity.AlbumBean;
 import com.boll.audiobook.hear.network.request.TokenRequest;
 import com.boll.audiobook.hear.network.response.AlbumResponse;
@@ -39,6 +40,8 @@ import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.Permission;
 import com.hjq.permissions.XXPermissions;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,17 +103,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      * 有网的情况下加载数据
      */
     private void loadData() {
-        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
-        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
-                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
-                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
-                + HeadUtil.getScreenWidth(this) + "/"
-                + UUIDHexGenerator.getInstance().generateToken() + "/"
-                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
-                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
-
-        Const.UA = ua;
-        Log.d(TAG, "UA: " + ua);
+//        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
+//        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
+//                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
+//                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
+//                + HeadUtil.getScreenWidth(this) + "/"
+//                + UUIDHexGenerator.getInstance().generateToken() + "/"
+//                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
+//                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
+        Const.UA = TokenUtil.getUserLoginToken(this);
+        Log.d(TAG, "UA: " + Const.UA);
 
         XXPermissions.with(this)
                 .permission(Permission.READ_MEDIA_IMAGES)
@@ -173,7 +175,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                                 AlbumBean album = new AlbumBean();
                                 album.setAlbumId(albumResponse.getId());
                                 album.setName(albumResponse.getName());
-                                album.setImgUrl(albumResponse.getPicUrl());
+                                String picUrl = albumResponse.getPicUrl();
+                                try {
+                                    picUrl = URLEncoder.encode(picUrl, "utf-8").replaceAll("\\+", "%20");
+                                    picUrl = picUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                                } catch (UnsupportedEncodingException e) {
+                                    e.printStackTrace();
+                                }
+                                album.setImgUrl(picUrl);
+//                                Log.e(TAG, "picUrl: " + picUrl);
                                 album.setResCount(String.valueOf(albumResponse.getResCount()));
                                 albumBeans.add(album);
                             }

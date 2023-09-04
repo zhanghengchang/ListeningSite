@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -15,16 +14,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.boll.audiobook.hear.R;
-import com.boll.audiobook.hear.evs.bean.AudioResult;
-import com.boll.audiobook.hear.evs.bean.IntermediateBean;
-import com.boll.audiobook.hear.evs.utils.EvsSdk;
+import com.boll.audiobook.hear.audio.YuyinReceiver;
+import com.boll.xirilib.XiriUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.util.List;
-
 public class SearchActivity extends BaseActivity implements View.OnClickListener,
-        EvsSdk.Companion.IntermediateListener, EvsSdk.Companion.AudioResultListener {
+        YuyinReceiver.OnYuYinToTextListener {
 
     private static final String TAG = "SearchActivity";
 
@@ -66,7 +62,6 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
                     tvBubble.setVisibility(View.INVISIBLE);
                     isRecordDown = false;
                     lyAnim.stop();
-                    EvsSdk.Companion.stopCapture();
                 }
             }
             return false;
@@ -81,7 +76,6 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
     @Override
     protected void onResume() {
         super.onResume();
-        EvsSdk.Companion.init();
     }
 
     @Override
@@ -113,8 +107,8 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public void initData() {
-        EvsSdk.Companion.setIntermediateListener(this);
-        EvsSdk.Companion.setAudioResultListener(this);
+        YuyinReceiver.register(this);
+        YuyinReceiver.setOnYuYinToTextListener(this);
 
         gson = new GsonBuilder()
                 .serializeNulls() //输出null
@@ -130,15 +124,16 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == 131) {
+        if (event.getKeyCode() == 234) {
             if (!isRecordDown) {
                 mHandler.sendEmptyMessageDelayed(COUNTDOWN_CODE, 1000 * 10);
-                llBackground.setBackgroundResource(R.mipmap.background_search);
+                llBackground.setBackgroundResource(R.mipmap.background_subcategory);
                 llHint.setVisibility(View.GONE);
                 llResult.setVisibility(View.VISIBLE);
                 isRecordDown = true;
                 lyAnim.start();
-                EvsSdk.Companion.sendAudioIn();
+
+                XiriUtil.performBeginRecord(this);
             }
         }
         return super.dispatchKeyEvent(event);
@@ -146,13 +141,14 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (event.getKeyCode() == 131) {
+        if (event.getKeyCode() == 234) {
             if (isRecordDown) {
                 mHandler.removeMessages(COUNTDOWN_CODE);
                 tvBubble.setVisibility(View.INVISIBLE);
                 isRecordDown = false;
                 lyAnim.stop();
-                EvsSdk.Companion.stopCapture();
+
+                XiriUtil.performEndRecord(this);
             }
         }
         return super.onKeyUp(keyCode, event);
@@ -166,16 +162,16 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
                 finish();
                 break;
             case R.id.tv_keyword1:
-                normValue = "培生";
+                normValue = "1级-pink";
                 break;
             case R.id.tv_keyword2:
-                normValue = "绘本";
+                normValue = "Cars";
                 break;
             case R.id.tv_keyword3:
-                normValue = "英文童谣";
+                normValue = "2级-red";
                 break;
             case R.id.tv_keyword4:
-                normValue = "学乐";
+                normValue = "Cats";
                 break;
             default:
                 break;
@@ -188,62 +184,75 @@ public class SearchActivity extends BaseActivity implements View.OnClickListener
         }
     }
 
-    @Override
-    public void onIntermediateResult(String json) {
-        IntermediateBean intermediateBean = gson.fromJson(json, IntermediateBean.class);
-        if (intermediateBean != null) {
-            int size = intermediateBean.getIflyos_responses().size();
-            if (size > 0) {
-                for (int i = 0; i < size; i++) {
-                    String name = intermediateBean.getIflyos_responses().get(i).getHeader().getName();
-                    String intermediate = "recognizer.intermediate_text";//识别中标识
-                    if (TextUtils.equals(name, intermediate)) {
-                        String text = intermediateBean.getIflyos_responses().get(i).getPayload().getText();
-                        runOnUiThread(() -> {
-                            tvAudioResult.setText(text);
-                        });
-                        Log.e(TAG, "识别中: " + text);
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onIntermediateResult(String json) {
+//        IntermediateBean intermediateBean = gson.fromJson(json, IntermediateBean.class);
+//        if (intermediateBean != null) {
+//            int size = intermediateBean.getIflyos_responses().size();
+//            if (size > 0) {
+//                for (int i = 0; i < size; i++) {
+//                    String name = intermediateBean.getIflyos_responses().get(i).getHeader().getName();
+//                    String intermediate = "recognizer.intermediate_text";//识别中标识
+//                    if (TextUtils.equals(name, intermediate)) {
+//                        String text = intermediateBean.getIflyos_responses().get(i).getPayload().getText();
+//                        runOnUiThread(() -> {
+//                            tvAudioResult.setText(text);
+//                        });
+//                        Log.e(TAG, "识别中: " + text);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-    @Override
-    public void onAudioResult(String json) {
-        String normValue = "";
-        AudioResult audioResult = gson.fromJson(json, AudioResult.class);
-        if (audioResult != null) {
-            int size = audioResult.getIflyos_responses().size();
-            if (size > 0) {
-                List<AudioResult.IflyosResponsesBean> iflyos_responses =
-                        audioResult.getIflyos_responses();
-                for (int i = 0; i < iflyos_responses.size(); i++) {
-                    String name = iflyos_responses.get(i).getHeader().getName();
-                    String custom = "interceptor.custom";
-                    if (TextUtils.equals(name, custom)) {
-                        isJumpResult = true;
-                        normValue = iflyos_responses.get(i).getPayload().getNormValue();
-                        Intent intent = new Intent(this, SearchResultActivity.class);
-                        intent.putExtra("normValue", normValue);
-                        startActivity(intent);
-                        Log.d(TAG, "normValue: " + normValue);
-                    }
-                }
-            }
-        }
-        //如果没有语音结果
-        if (!isJumpResult) {
-            isJumpResult = true;
-            Intent intent = new Intent(this, SearchResultActivity.class);
-            intent.putExtra("normValue", "");
-            startActivity(intent);
-        }
-    }
+//    @Override
+//    public void onAudioResult(String json) {
+//        String normValue = "";
+//        AudioResult audioResult = gson.fromJson(json, AudioResult.class);
+//        if (audioResult != null) {
+//            int size = audioResult.getIflyos_responses().size();
+//            if (size > 0) {
+//                List<AudioResult.IflyosResponsesBean> iflyos_responses =
+//                        audioResult.getIflyos_responses();
+//                for (int i = 0; i < iflyos_responses.size(); i++) {
+//                    String name = iflyos_responses.get(i).getHeader().getName();
+//                    String custom = "interceptor.custom";
+//                    if (TextUtils.equals(name, custom)) {
+//                        isJumpResult = true;
+//                        normValue = iflyos_responses.get(i).getPayload().getNormValue();
+//                        Intent intent = new Intent(this, SearchResultActivity.class);
+//                        intent.putExtra("normValue", normValue);
+//                        startActivity(intent);
+//                        Log.d(TAG, "normValue: " + normValue);
+//                    }
+//                }
+//            }
+//        }
+//        //如果没有语音结果
+//        if (!isJumpResult) {
+//            isJumpResult = true;
+//            Intent intent = new Intent(this, SearchResultActivity.class);
+//            intent.putExtra("normValue", "");
+//            startActivity(intent);
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mHandler.removeMessages(COUNTDOWN_CODE);
+
+        YuyinReceiver.unregister(this);
     }
+
+    @Override
+    public void onYuYinToText(String content) {
+        runOnUiThread(() -> {
+            tvAudioResult.setText(content);
+        });
+        Intent intent = new Intent(this, SearchResultActivity.class);
+        intent.putExtra("normValue", content);
+        startActivity(intent);
+    }
+
 }

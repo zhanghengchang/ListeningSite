@@ -18,6 +18,7 @@ import android.animation.ValueAnimator;
 import android.os.Build;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.util.Log;
 
 import com.boll.audiolib.entity.LrcEntry;
 
@@ -42,6 +43,8 @@ import java.util.regex.Pattern;
  * 工具类
  */
 public class LrcUtils {
+    private static final String TAG = "LrcUtils";
+
     private static final Pattern PATTERN_LINE = Pattern.compile("((\\[\\d\\d:\\d\\d\\.\\d{2,3}\\])+)(.+)");
     private static final Pattern PATTERN_TIME = Pattern.compile("\\[(\\d\\d):(\\d\\d)\\.(\\d{2,3})\\]");
 
@@ -158,6 +161,7 @@ public class LrcUtils {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
+            Log.e(TAG, "getContentFromNetwork code: " + conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
                 InputStream is = conn.getInputStream();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();

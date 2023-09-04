@@ -1,20 +1,14 @@
 package com.boll.audiobook.hear.app;
 
-import android.app.Application;
 import android.content.Context;
-
 import androidx.multidex.MultiDex;
-
-import com.boll.audiobook.hear.evs.utils.EvsSdk;
-import com.boll.audiobook.hear.utils.HeadUtil;
+import androidx.multidex.MultiDexApplication;
 import com.github.gzuliyujiang.oaid.DeviceIdentifier;
-
-import org.litepal.LitePal;
 
 /**
  * created by zoro at 2023/5/8
  */
-public class MyApplication extends Application {
+public class MyApplication extends MultiDexApplication {
 
     public static MyApplication mInstance;
     public static Context context;
@@ -27,9 +21,6 @@ public class MyApplication extends Application {
 
         mInstance = this;
         context = getApplicationContext();
-        EvsSdk.Companion.initAuth(this, HeadUtil.getSerialNumber(), "d0bfad2a-0603-4798-a1d7-2cf3d9f2fab1");
-
-        LitePal.initialize(this);
     }
 
 }

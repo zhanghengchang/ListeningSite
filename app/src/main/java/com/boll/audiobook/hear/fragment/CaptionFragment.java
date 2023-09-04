@@ -27,6 +27,8 @@ public class CaptionFragment extends Fragment {
     private Context mContext;
     public LrcView lrcView;
 
+    public onCreatedListener mOnCreatedListener;
+
     public CaptionFragment(Context context) {
         mContext = context;
     }
@@ -41,11 +43,22 @@ public class CaptionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_caption, container, false);
         initView(view);
+        mOnCreatedListener.onCreated();
         return view;
     }
 
     private void initView(View view) {
         lrcView = view.findViewById(R.id.lrc_view);
+    }
+
+    public void setOnCreatedListener(onCreatedListener onCreatedListener){
+        mOnCreatedListener = onCreatedListener;
+    }
+
+    public interface onCreatedListener {
+
+        void onCreated();
+
     }
 
 }

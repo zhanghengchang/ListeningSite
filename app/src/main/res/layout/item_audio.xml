@@ -15,8 +15,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="14sp"
-        android:textColor="@color/C_AAAAAA"/>
+        android:textSize="12sp"
+        android:textColor="@color/C_999999"/>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -30,8 +30,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="18sp"
-            android:textColor="@color/C_4E4E4E"/>
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/C_4D4D4D"/>
 
         <TextView
             android:id="@+id/tv_duration"
@@ -39,19 +40,20 @@
             android:layout_height="wrap_content"
             android:text=""
             android:textSize="12sp"
-            android:textColor="@color/C_CCCCCC"/>
+            android:textColor="@color/C_999999"/>
 
     </LinearLayout>
 
     <ImageView
         android:id="@+id/icon_playing"
         android:layout_width="22dp"
-        android:layout_height="22dp"/>
+        android:layout_height="22dp"
+        android:visibility="gone"/>
 
     <ImageView
         android:id="@+id/icon_download"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginLeft="10dp"/>
 
 </LinearLayout>

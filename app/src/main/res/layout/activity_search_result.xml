@@ -19,7 +19,7 @@
             android:id="@+id/icon_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@mipmap/icon_back"
+            android:src="@mipmap/icon_back1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
@@ -93,14 +93,14 @@
                     android:textColor="@color/C_FFA271"
                     android:textStyle="bold"
                     android:textSize="14sp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="10dp"
                     android:layout_marginLeft="12dp"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="10dp"
                     android:layout_marginLeft="12dp">
 
                     <LinearLayout
@@ -108,7 +108,7 @@
                         android:layout_width="74dp"
                         android:layout_height="24dp"
                         android:orientation="horizontal"
-                        android:background="@drawable/bg_search_selected"
+                        android:background="@drawable/bg_selected_left"
                         android:paddingLeft="14dp">
 
                         <ImageView
@@ -135,16 +135,15 @@
                         android:layout_width="74dp"
                         android:layout_height="24dp"
                         android:orientation="horizontal"
-                        android:background="@drawable/bg_search_normal"
-                        android:paddingLeft="14dp"
-                        android:layout_marginLeft="14dp">
+                        android:background="@drawable/bg_normal_right"
+                        android:paddingLeft="14dp">
 
                         <ImageView
                             android:id="@+id/icon_audio"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/icon_audio_normal"
-                            android:layout_gravity="center_vertical" />
+                            android:layout_height="24dp"
+                            android:layout_gravity="center_vertical"
+                            android:src="@mipmap/icon_audio_normal" />
 
                         <TextView
                             android:id="@+id/tv_audio"
@@ -152,7 +151,7 @@
                             android:layout_height="wrap_content"
                             android:text="音频"
                             android:textSize="14sp"
-                            android:textColor="@color/C_CCCCCC"
+                            android:textColor="@color/C_999999"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="5dp"/>
 

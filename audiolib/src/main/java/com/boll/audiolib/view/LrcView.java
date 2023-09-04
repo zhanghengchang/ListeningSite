@@ -78,7 +78,7 @@ public class LrcView extends View {
     private float mLrcPadding;
     private OnPlayClickListener mOnPlayClickListener;
     private OnTapListener mOnTapListener;
-//    private OnCurrentPlayListener mOnCurrentPlayListener;
+    //    private OnCurrentPlayListener mOnCurrentPlayListener;
     private ValueAnimator mAnimator;
     private GestureDetector mGestureDetector;
     private Scroller mScroller;
@@ -410,19 +410,21 @@ public class LrcView extends View {
     /**
      * 加载在线歌词，默认使用 utf-8 编码
      *
-     * @param lrcUrl 歌词文件的网络地址
+     * @param lrcUrl      歌词文件的网络地址
+     * @param captionType 字幕类型 1、英文；2、双语；3、中文
      */
-    public void loadLrcByUrl(String lrcUrl) {
-        loadLrcByUrl(lrcUrl, "utf-8");
+    public void loadLrcByUrl(String lrcUrl, int captionType) {
+        loadLrcByUrl(lrcUrl, "utf-8", captionType);
     }
 
     /**
      * 加载在线歌词
      *
-     * @param lrcUrl  歌词文件的网络地址
-     * @param charset 编码格式
+     * @param lrcUrl      歌词文件的网络地址
+     * @param charset     编码格式
+     * @param captionType 字幕类型 1、英文；2、双语；3、中文
      */
-    public void loadLrcByUrl(String lrcUrl, String charset) {
+    public void loadLrcByUrl(String lrcUrl, String charset, int captionType) {
         String flag = "url://" + lrcUrl;
         setFlag(flag);
         new AsyncTask<String, Integer, String>() {
@@ -434,7 +436,32 @@ public class LrcView extends View {
             @Override
             protected void onPostExecute(String lrcText) {
                 if (getFlag() == flag) {
-                    loadLrc(lrcText);
+                    if (!TextUtils.isEmpty(lrcText)) {
+                        if (lrcText.contains("###")) {
+                            lrcText = lrcText.replaceAll("###", "");
+                        }
+                        StringBuffer en = new StringBuffer();
+                        StringBuffer ch = new StringBuffer();
+                        String[] lines = lrcText.split("\n");
+                        for (int i = 0; i < lines.length; i++) {
+                            if (lines[i].contains(":::")) {
+                                String[] strings = lines[i].split(":::");
+                                en.append(strings[0] + "\n");
+                                ch.append(lines[i].substring(0, 11) + strings[1] + "\n");
+                            } else {
+                                en.append(lines[i] + "\n");
+                            }
+                        }
+                        if (captionType == 1) {
+                            loadLrc(en.toString());
+                        } else if (captionType == 2) {
+                            loadLrc(en.toString(), ch.toString());
+                        } else if (captionType == 3) {
+                            loadLrc(ch.toString());
+                        }
+                    } else {
+//                        loadLrc("暂无字幕",null);
+                    }
                 }
             }
         }.execute(lrcUrl, charset);

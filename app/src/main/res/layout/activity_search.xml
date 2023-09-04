@@ -14,7 +14,7 @@
         android:id="@+id/icon_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/icon_back"
+        android:src="@mipmap/icon_back1"
         android:padding="12dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
@@ -33,16 +33,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="长按语音键"
-            android:textSize="22sp"
-            android:textColor="#006AB1"
+            android:textSize="20sp"
+            android:textColor="@color/white"
             android:textStyle="bold"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="说出你想听的内容"
-            android:textSize="14sp"
-            android:textColor="#006AB1"
+            android:textSize="16sp"
+            android:textColor="@color/C_CCFFFFFF"
             android:textStyle="bold"/>
 
         <LinearLayout
@@ -58,8 +58,9 @@
                 android:layout_height="wrap_content"
                 android:text="你可以对我说"
                 android:layout_gravity="center_horizontal"
-                android:textColor="#006AB1"
-                android:layout_marginTop="12dp"/>
+                android:textColor="@color/white"
+                android:layout_marginTop="12dp"
+                android:textSize="14sp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -72,12 +73,12 @@
 
                 <TextView
                     android:id="@+id/tv_keyword1"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:text="培生"
+                    android:text="1级-pink"
                     android:textSize="10sp"
-                    android:background="@mipmap/bg_keyword"
-                    android:textColor="@color/white"
+                    android:background="@drawable/bg_keyword1"
+                    android:textColor="@color/C_17C172"
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:paddingLeft="10dp"
@@ -91,11 +92,11 @@
 
                 <TextView
                     android:id="@+id/tv_keyword2"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:text="绘本"
+                    android:text="Cars"
                     android:textSize="10sp"
-                    android:background="@mipmap/bg_keyword"
+                    android:background="@drawable/bg_keyword"
                     android:textColor="@color/white"
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
@@ -116,12 +117,12 @@
 
                 <TextView
                     android:id="@+id/tv_keyword3"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:text="英文童谣"
+                    android:text="2级-red"
                     android:textSize="10sp"
-                    android:background="@mipmap/bg_keyword"
-                    android:textColor="@color/white"
+                    android:background="@drawable/bg_keyword1"
+                    android:textColor="@color/C_17C172"
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:paddingLeft="10dp"
@@ -135,12 +136,12 @@
 
                 <TextView
                     android:id="@+id/tv_keyword4"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:text="学乐"
+                    android:text="Cats"
                     android:textSize="10sp"
-                    android:background="@mipmap/bg_keyword"
-                    android:textColor="@color/white"
+                    android:background="@drawable/bg_keyword1"
+                    android:textColor="@color/C_17C172"
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:paddingLeft="10dp"
@@ -167,8 +168,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="正在搜索…"
-            android:textColor="#076FB5"
-            android:textSize="14sp"
+            android:textColor="@color/C_CCFFFFFF"
+            android:textSize="16sp"
             android:textStyle="bold"/>
 
         <TextView
@@ -193,7 +194,7 @@
             android:gravity="center"
             android:text=""
             android:textSize="10sp"
-            android:textColor="@color/C_1DCFFF"
+            android:textColor="@color/C_1BCB79"
             android:paddingLeft="6dp"
             android:paddingRight="6dp"
             android:paddingBottom="6dp"

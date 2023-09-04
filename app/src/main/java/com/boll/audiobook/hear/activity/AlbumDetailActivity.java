@@ -1,11 +1,8 @@
 package com.boll.audiobook.hear.activity;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,38 +11,37 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
-import com.boll.audiolib.util.DownloadUtil;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
-import com.bumptech.glide.request.RequestOptions;
 import com.boll.audiobook.hear.R;
 import com.boll.audiobook.hear.adapter.AudioAdapter;
 import com.boll.audiobook.hear.entity.AudioBean;
-import com.boll.audiobook.hear.litepal.DownloadAudio;
+import com.boll.audiobook.hear.room.DownloadAudio;
 import com.boll.audiobook.hear.network.response.AlbumDetailResponse;
 import com.boll.audiobook.hear.network.response.AlbumResponse;
 import com.boll.audiobook.hear.network.response.AudioResponse;
 import com.boll.audiobook.hear.network.response.BaseResponse;
-import com.boll.audiobook.hear.network.response.ResUrlResponse;
 import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
+import com.boll.audiobook.hear.room.DownloadDao;
+import com.boll.audiobook.hear.room.DownloadDb;
 import com.boll.audiobook.hear.service.PlayService;
 import com.boll.audiobook.hear.utils.Const;
-import com.boll.audiobook.hear.utils.HeadUtil;
 import com.boll.audiobook.hear.utils.TokenUtil;
-import com.boll.audiobook.hear.utils.UUIDHexGenerator;
 import com.boll.audiobook.hear.view.CollectDialog;
-import com.github.gzuliyujiang.oaid.DeviceID;
-
-import org.litepal.LitePal;
+import com.boll.audiolib.util.DownloadUtil;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import rx.functions.Action1;
 
-public class AlbumDetailActivity extends BaseActivity implements View.OnClickListener {
+public class AlbumDetailActivity extends BaseActivity implements View.OnClickListener, PlayService.OnCurrentPlayIdListener {
 
     private static final String TAG = "AlbumPlayActivity";
 
@@ -77,6 +73,9 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
 
     private PlayService mPlayService;
     private LinearLayout llContent;
+
+    private DownloadDb downloadDb;
+    private DownloadDao downloadDao;
 
     @Override
     public void setStatus() {
@@ -114,17 +113,16 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
 
     @Override
     public void initData() {
-        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
-        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
-                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
-                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
-                + HeadUtil.getScreenWidth(this) + "/"
-                + UUIDHexGenerator.getInstance().generateToken() + "/"
-                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
-                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
-        Const.UA = ua;
+//        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
+//        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
+//                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
+//                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
+//                + HeadUtil.getScreenWidth(this) + "/"
+//                + UUIDHexGenerator.getInstance().generateToken() + "/"
+//                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
+//                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
+        Const.UA = TokenUtil.getUserLoginToken(this);
 
-        SQLiteDatabase db = LitePal.getDatabase();
         Intent intent = getIntent();
         id = intent.getIntExtra("id", 1);
         String albumName = intent.getStringExtra("albumName");
@@ -132,6 +130,9 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
 
         mListenerLoader = ListenerLoader.getInstance();
         mCollectDialog = new CollectDialog(mContext);
+
+        downloadDb = Room.databaseBuilder(mContext,DownloadDb.class,"download-db").build();
+        downloadDao = downloadDb.downloadDao();
 
         tvTitle.setText(albumName);
         Glide.with(mContext).load(imgUrl)
@@ -174,20 +175,7 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
                 mAudioAdapter = new AudioAdapter(audioBeans, 0);
                 recyclerViewAlbum.setAdapter(mAudioAdapter);
 
-                mPlayService.setOnCurrentPlayIdListener(new PlayService.OnCurrentPlayIdListener() {
-                    @Override
-                    public void onCurrentPlayId(int currentId) {
-                        for (int i = 0; i < audioList.size(); i++) {
-                            int id = audioList.get(i).getId();
-                            if (id == currentId) {
-                                audioBeans.get(i).setPlaying(true);
-                            } else {
-                                audioBeans.get(i).setPlaying(false);
-                            }
-                        }
-                        mAudioAdapter.notifyDataSetChanged();
-                    }
-                });
+                mPlayService.addOnCurrentPlayIdListener(AlbumDetailActivity.this);
 
                 mAudioAdapter.setOnClickListener(new AudioAdapter.OnClickListener() {
                     @Override
@@ -204,56 +192,48 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
                     @Override
                     public void onDownload(int position) {
                         String audioUrl = audioList.get(position).getAudioUrl();
-                        //转换成带token的url
-                        mListenerLoader.getDownloadUrl(audioUrl).subscribe(new Action1<ResUrlResponse>() {
+                        String[] split = audioUrl.split("/");
+                        String fileName = split[split.length - 1];
+                        if (DownloadUtil.existsFile(Const.MP3PATH + fileName)) return;
+                        for (int i = 0; i < audioBeans.size(); i++) {
+                            if (i == position) {
+                                audioBeans.get(i).setDownloadState(2);
+                            }
+                        }
+                        mAudioAdapter.notifyDataSetChanged();
+                        //url包含中文需要转码
+                        //对路径进行编码 然后替换路径中所有空格 编码之后空格变成“+”而空格的编码表示是“%20” 所以将所有的“+”替换成“%20”就可以了
+                        try {
+                            audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+                            //编码之后的路径中的“/”也变成编码的东西了 所有还有将其替换回来 这样才是完整的路径
+                            audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                        String finalAudioUrl = audioUrl;
+                        new Thread(new Runnable() {
                             @Override
-                            public void call(ResUrlResponse response) {
-                                if (response.getCode() != 0) {
-                                    Log.e(TAG, audioUrl + " === 资源url转换失败");
-                                    return;
-                                }
-                                String[] split = audioUrl.split("/");
-                                String fileName = split[split.length - 1];
-                                if (DownloadUtil.existsFile(Const.MP3PATH + fileName)) return;
+                            public void run() {
+                                boolean isDownloaded = DownloadUtil.downloadRes(finalAudioUrl, Const.MP3PATH, fileName);
                                 for (int i = 0; i < audioBeans.size(); i++) {
                                     if (i == position) {
-                                        audioBeans.get(i).setDownloadState(2);
+                                        if (isDownloaded) {
+                                            audioBeans.get(i).setDownloadState(1);
+                                            savaDataToSql(i);
+                                        } else {
+                                            audioBeans.get(i).setDownloadState(0);
+                                        }
                                     }
                                 }
-                                mAudioAdapter.notifyDataSetChanged();
-                                String url = response.getData();
-                                new Thread(new Runnable() {
+                                runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        //todo 还需要下载字幕
-                                        boolean isDownloaded = DownloadUtil.downloadRes(url, Const.MP3PATH, fileName);
-                                        for (int i = 0; i < audioBeans.size(); i++) {
-                                            if (i == position) {
-                                                if (isDownloaded) {
-                                                    audioBeans.get(i).setDownloadState(1);
-                                                    savaDataToSql(i);
-                                                } else {
-                                                    audioBeans.get(i).setDownloadState(0);
-                                                }
-                                            }
-                                        }
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                mAudioAdapter.notifyDataSetChanged();
-                                            }
-                                        });
-                                        Log.e(TAG, "savePath: " + Const.MP3PATH + fileName + ",isDownloaded: " + isDownloaded);
+                                        mAudioAdapter.notifyDataSetChanged();
                                     }
-                                }).start();
+                                });
+                                Log.e(TAG, "savePath: " + Const.MP3PATH + fileName + ",isDownloaded: " + isDownloaded);
                             }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                throwable.printStackTrace();
-                                Log.e(TAG, audioUrl + " === 资源url转换失败");
-                            }
-                        });
+                        }).start();
                     }
                 });
                 mLoadingDialog.dismiss();
@@ -385,41 +365,39 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
                     String[] split = audioUrl.split("/");
                     String fileName = split[split.length - 1];
                     int finalI = i;
-                    mListenerLoader.getDownloadUrl(audioUrl).subscribe(new Action1<ResUrlResponse>() {
+                    //url包含中文需要转码
+                    //对路径进行编码 然后替换路径中所有空格 编码之后空格变成“+”而空格的编码表示是“%20” 所以将所有的“+”替换成“%20”就可以了
+                    try {
+                        audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+                        //编码之后的路径中的“/”也变成编码的东西了 所有还有将其替换回来 这样才是完整的路径
+                        audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    String finalAudioUrl = audioUrl;
+                    new Thread(new Runnable() {
                         @Override
-                        public void call(ResUrlResponse response) {
-                            String url = response.getData();
-                            new Thread(new Runnable() {
+                        public void run() {
+                            boolean isDownloaded = DownloadUtil.downloadRes(finalAudioUrl, Const.MP3PATH, fileName);
+                            for (int i = 0; i < audioBeans.size(); i++) {
+                                if (i == finalI) {
+                                    if (isDownloaded) {
+                                        audioBeans.get(i).setDownloadState(1);
+                                        savaDataToSql(i);
+                                    } else {
+                                        audioBeans.get(i).setDownloadState(0);
+                                    }
+                                }
+                            }
+                            runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    //todo 还需要下载字幕
-                                    boolean isDownloaded = DownloadUtil.downloadRes(url, Const.MP3PATH, fileName);
-                                    for (int i = 0; i < audioBeans.size(); i++) {
-                                        if (i == finalI) {
-                                            if (isDownloaded) {
-                                                audioBeans.get(i).setDownloadState(1);
-                                                savaDataToSql(i);
-                                            } else {
-                                                audioBeans.get(i).setDownloadState(0);
-                                            }
-                                        }
-                                    }
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mAudioAdapter.notifyDataSetChanged();
-                                        }
-                                    });
-                                    Log.e(TAG, "savePath: " + Const.MP3PATH + fileName + ",isDownloaded: " + isDownloaded);
+                                    mAudioAdapter.notifyDataSetChanged();
                                 }
-                            }).start();
+                            });
+                            Log.e(TAG, "savePath: " + Const.MP3PATH + fileName + ",isDownloaded: " + isDownloaded);
                         }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            throwable.printStackTrace();
-                        }
-                    });
+                    }).start();
                 }
                 break;
             default:
@@ -439,14 +417,30 @@ public class AlbumDetailActivity extends BaseActivity implements View.OnClickLis
         downloadAudio.setCover(audioResponse.getCover());
         downloadAudio.setCollect(audioResponse.getIsCollect());
 
-        boolean save = downloadAudio.save();
-        if (save) {
-            Log.e(TAG, audioResponse.getTitle() + " 保存数据库成功");
-        }
+        downloadDao.insert(downloadAudio);
+
+//        boolean save = downloadAudio.save();
+//        if (save) {
+//            Log.e(TAG, audioResponse.getTitle() + " 保存数据库成功");
+//        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mPlayService.removeOnCurrentPlayIdListener(this);
+    }
+
+    @Override
+    public void onCurrentPlayId(int currentId) {
+        for (int i = 0; i < audioList.size(); i++) {
+            int id = audioList.get(i).getId();
+            if (id == currentId) {
+                audioBeans.get(i).setPlaying(true);
+            } else {
+                audioBeans.get(i).setPlaying(false);
+            }
+        }
+        mAudioAdapter.notifyDataSetChanged();
     }
 }

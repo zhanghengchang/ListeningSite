@@ -2,6 +2,7 @@ package com.boll.audiobook.hear.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -19,14 +20,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.boll.audiobook.hear.R;
-import com.boll.audiobook.hear.evs.bean.Data;
-import com.boll.audiobook.hear.evs.bean.Iflyos_responses;
-import com.boll.audiobook.hear.evs.bean.JsonRootBean;
-import com.boll.audiobook.hear.evs.bean.Payload;
-import com.boll.audiobook.hear.evs.bean.Read_chapter;
-import com.boll.audiobook.hear.evs.bean.Sentences;
-import com.boll.audiobook.hear.evs.bean.Words;
-import com.boll.audiobook.hear.evs.utils.EvsSdk;
 import com.boll.audiobook.hear.network.request.AddRecordRequest;
 import com.boll.audiobook.hear.network.response.BaseResponse;
 import com.boll.audiobook.hear.network.response.UploadTokenResponse;
@@ -34,11 +27,13 @@ import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
 import com.boll.audiobook.hear.service.PlayService;
 import com.boll.audiobook.hear.utils.Const;
 import com.boll.audiobook.hear.utils.FileListUtil;
-import com.boll.audiobook.hear.utils.Mp3MergeUtil;
-import com.boll.audiobook.hear.utils.PcmToMp3Util;
 import com.boll.audiobook.hear.utils.RecordUtil;
 import com.boll.audiobook.hear.utils.SaveDataUtil;
 import com.boll.audiobook.hear.utils.WavMergeUtil;
+import com.boll.evaluationlib.bean.EvaluateResult;
+import com.boll.evaluationlib.constant.Constant;
+import com.boll.evaluationlib.utils.EvaluationReceiver;
+import com.boll.evaluationlib.utils.EvaluationUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qiniu.android.http.ResponseInfo;
@@ -61,7 +56,7 @@ import java.util.List;
 
 import rx.functions.Action1;
 
-public class FollowActivity extends BaseActivity implements View.OnClickListener, EvsSdk.Companion.VoiceEvaluateListener {
+public class FollowActivity extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "FollowActivity";
 
@@ -72,7 +67,7 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
     private LinearLayout llPlay;
     private ImageView animPlay;
     private ImageView animRecord;
-    private ImageView imgRecord;
+    private TextView tvRecord;
 
     private boolean isRecordDown;//录音按键是否按下
 
@@ -93,7 +88,7 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
     private ProgressBar accuracy;
     private ProgressBar integrity;
     private TextView tvTotalScore;
-    private ImageView iconPlayBack;
+    private LinearLayout llPlayBack;
     private LinearLayout llResultContent;
     private LinearLayout llRecordHint;
 
@@ -107,6 +102,10 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
     private int TIME_OUT = 101;
     private int STOP_RECORD = 102;
 
+    public static final String RECEIVER_ACTION = "com.boll.evaluation.result";
+
+    private EvaluationReceiver receiver;
+
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
@@ -116,7 +115,7 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                     showToast("识别超时，请检查网络或重试！");
                 }
             } else if (message.what == STOP_RECORD) {
-//                PcmToMp3Util.pcmToMp3(position, true);
+//                PcmToMp3Util.pcmToMp3(position, false);
                 RecordUtil.stopRecordAudio(position);
                 isRecordedList.set(position - 1, 1);
                 SaveDataUtil.getInstance(mContext).putList("isRecordedList", isRecordedList);
@@ -163,6 +162,32 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                 } else {
                     Log.e(TAG, "录音不完整，未上传！");
                 }
+            } else if (message.what == Constant.EVALUATION_RESULT) {
+                EvaluateResult result = (EvaluateResult) message.obj;
+                mLoadingDialog.dismiss();
+                if (result.getCode() == 1) {
+                    //返回正常结果
+                    int fluencyScore = (int) (result.getFluency_score() * 20);
+                    int accuracyScore = (int) (result.getAccuracy_score() * 20);
+                    int integrityScore = (int) (result.getIntegrity_score() * 20);
+                    int totalScore = (int) (result.getTotal_score() * 20);
+
+                    llSentenceContent.setVisibility(View.GONE);
+                    llRecordHint.setVisibility(View.GONE);
+                    llResultContent.setVisibility(View.VISIBLE);
+
+                    fluency.setProgress(fluencyScore);
+                    accuracy.setProgress(accuracyScore);
+                    integrity.setProgress(integrityScore);
+                    tvTotalScore.setText(totalScore + "");
+                    Log.e(TAG,result.getContent() + "得分" + result.getTotal_score());
+                } else {
+                    //评测异常
+                    int code = result.getCode();
+                    String msg = result.getMsg();
+                    Log.e(TAG, "评测异常   code    " + code + "    msg    " + msg);
+                    Toast.makeText(getApplicationContext(), "识别失败,您再说一遍吧！", Toast.LENGTH_SHORT).show();
+                }
             }
             return false;
         }
@@ -176,7 +201,8 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
     @Override
     protected void onResume() {
         super.onResume();
-        EvsSdk.Companion.init();
+        IntentFilter intentFilter = new IntentFilter(RECEIVER_ACTION);
+        registerReceiver(receiver, intentFilter);
     }
 
     @Override
@@ -193,7 +219,7 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
         llPlay = findViewById(R.id.ll_play);
         animPlay = findViewById(R.id.anim_play);
         animRecord = findViewById(R.id.anim_record);
-        imgRecord = findViewById(R.id.img_record);
+        tvRecord = findViewById(R.id.tv_record);
         llSentenceContent = findViewById(R.id.ll_sentence_content);
         animPlay1 = findViewById(R.id.anim_play1);
         llPlay1 = findViewById(R.id.ll_play1);
@@ -202,11 +228,11 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
         accuracy = findViewById(R.id.accuracy);
         integrity = findViewById(R.id.integrity);
         tvTotalScore = findViewById(R.id.tv_totalScore);
-        iconPlayBack = findViewById(R.id.icon_play_back);
+        llPlayBack = findViewById(R.id.ll_play_back);
         llResultContent = findViewById(R.id.ll_result_content);
         llRecordHint = findViewById(R.id.ll_record_hint);
         llPlay1.setOnClickListener(this);
-        iconPlayBack.setOnClickListener(this);
+        llPlayBack.setOnClickListener(this);
         iconBack.setOnClickListener(this);
         llPlay.setOnClickListener(this);
 
@@ -223,6 +249,8 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
         position = intent.getIntExtra("position", 1);
         count = intent.getIntExtra("count", 1);
         tvContent.setText(content);
+
+        receiver = new EvaluationReceiver(mHandler);
 
         //上次跟读的资源id
         int lastResId = SaveDataUtil.getInstance(mContext).getInt("lastResId", 0);
@@ -254,7 +282,6 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
 
         mPlayService = PlayService.getInstance();
 
-        EvsSdk.Companion.setVoiceEvaluateListener(this);
         gson = new GsonBuilder()
                 .serializeNulls() //输出null
                 .setPrettyPrinting()//格式化输出
@@ -323,14 +350,6 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
         }, opt);
     }
 
-    private void startEvaluating(boolean enableVad, String text) {
-        String language = "en_us";  // 英文
-        String category = "read_sentence";  // 'read_sentence'代表的是句子
-//        String text ="[word]\n book"   //单词
-//        text = "I like fall.It is cool.";  //句子
-        EvsSdk.Companion.startEvaluating(language, category, text, enableVad);
-    }
-
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -345,12 +364,15 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                 break;
             case R.id.ll_play1:
                 animPlay1.setBackground(getResources().getDrawable(R.drawable.anim_audio_play));
-                playAnim1 = (AnimationDrawable) animPlay.getBackground();
+                playAnim1 = (AnimationDrawable) animPlay1.getBackground();
                 playAnim1.start();
                 mPlayService.playCurrent();
                 break;
-            case R.id.icon_play_back://回放
-                RecordUtil.playWav(Const.RECORDPATH + "record" + position + ".wav");
+            case R.id.ll_play_back://回放
+//                RecordUtil.playWav(Const.RECORDPATH + "record" + position + ".wav");
+//                RecordUtil.playWav(Const.RECORDPATH + "record.pcm");
+                RecordUtil.playWavWithMediaPlayer(Const.RECORDPATH + "record" + position + ".wav");
+//                RecordUtil.playWavWithMediaPlayer(Const.RECORDPATH + "record.pcm");
                 break;
             default:
                 break;
@@ -372,14 +394,17 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == 131) {//录音键按下
+        if (event.getKeyCode() == 234) {//录音键按下
             if (!isRecordDown) {
-                imgRecord.setVisibility(View.GONE);
+                tvRecord.setVisibility(View.GONE);
                 animRecord.setVisibility(View.VISIBLE);
                 recordAnim.start();
                 isRecordDown = true;
                 RecordUtil.startRecordAudio();
-                startEvaluating(false, content);
+//                startEvaluating(false, content);
+
+                mHandler.sendEmptyMessageDelayed(STOP_RECORD,500);
+                EvaluationUtils.start(mContext, content);//开始评测
             }
         }
         return super.dispatchKeyEvent(event);
@@ -387,17 +412,18 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public boolean onKeyUp(int keyCode, @NonNull KeyEvent event) {
-        if (event.getKeyCode() == 131) {
+        if (event.getKeyCode() == 234) {
             if (isRecordDown) {
-                imgRecord.setVisibility(View.VISIBLE);
+                tvRecord.setVisibility(View.VISIBLE);
                 animRecord.setVisibility(View.GONE);
                 recordAnim.stop();
                 isRecordDown = false;
-                EvsSdk.Companion.stopCapture();
                 mLoadingDialog.showDialog();
                 //延时500毫秒停止录音防止录音不全
                 mHandler.sendEmptyMessageDelayed(STOP_RECORD, 500);
                 mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000 * 30);
+
+                EvaluationUtils.end(mContext);//结束评测
             }
         }
         return super.onKeyUp(keyCode, event);
@@ -423,116 +449,17 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         SaveDataUtil.getInstance(mContext).putInt("lastResId", resId);
         mPlayService.isFollow = false;
         mPlayService.start();
-    }
-
-    /**
-     * 评测结果返回
-     *
-     * @param json
-     */
-    @Override
-    public void onVoiceEvaluate(@NonNull String json) {
-        JsonRootBean jsonRootBean = gson.fromJson(json, JsonRootBean.class);
-        String toJson = gson.toJson(jsonRootBean);
-//        Log.d(TAG, "onVoiceEvaluate: " + toJson);
-
-        if (jsonRootBean != null) {
-            List<Iflyos_responses> iflyos = jsonRootBean.getIflyos_responses();
-            if (iflyos != null && iflyos.size() > 0) {
-                Iflyos_responses iflyos_responses = iflyos.get(0);
-                if (iflyos_responses != null) {
-                    Payload payload = iflyos_responses.getPayload();
-                    if (payload != null) {
-                        if (payload.getCode() == 0) {
-                            Data data = payload.getData();
-                            if (data != null) {
-                                Read_chapter readChapter = data.getRead_chapter();
-                                if (readChapter != null) {
-                                    mLoadingDialog.dismiss();
-                                    String except_info = readChapter.getExcept_info();
-                                    if ("28689".equals(except_info)) {
-                                        showToast("未检测到录音输入");
-                                        return;
-                                    }
-                                    int totalScore = (int) Math.round(readChapter.getTotal_score()); // 综合得分
-                                    int fluencyScore = (int) Math.round(readChapter.getFluency_score());//流畅度
-                                    int accuracyScore = (int) Math.round(readChapter.getAccuracy_score()); //准确度
-                                    int integrityScore = (int) Math.round(readChapter.getIntegrity_score()); //完整度
-
-                                    runOnUiThread(() -> {
-                                        llSentenceContent.setVisibility(View.GONE);
-                                        llRecordHint.setVisibility(View.GONE);
-                                        llResultContent.setVisibility(View.VISIBLE);
-
-                                        fluency.setProgress(fluencyScore);
-                                        accuracy.setProgress(accuracyScore);
-                                        integrity.setProgress(integrityScore);
-
-                                        tvTotalScore.setText(totalScore + "");
-                                    });
-                                    Log.d(TAG, "totalScore: " + totalScore);
-                                    Log.d(TAG, "integrityScore: " + integrityScore);
-                                    Log.d(TAG, "fluencyScore: " + fluencyScore);
-                                    Log.d(TAG, "accuracyScore: " + accuracyScore);
-
-                                    // 解析每个单词发音的正确
-                                    StringBuilder mContent = null;
-
-                                    //聆思接口返回的全部是小写，这里做切割过滤
-                                    //心喜悦返回的接口文本，有的是以.结尾，有的是以空格结尾
-                                    if (content.charAt(content.length() - 1) != ' ') {
-                                        content = content + " ";
-                                    }
-                                    String[] a = (content).split("\\. ");
-                                    List<Sentences> sentences = readChapter.getSentences();
-                                    if (sentences != null && sentences.size() > 0) {
-                                        for (int i = 0; i < sentences.size(); i++) {
-                                            String[] b = a[i].split(" ");
-                                            List<Words> words = sentences.get(i).getWords();
-                                            if (words != null && words.size() > 0) {
-                                                for (int j = 0; j < words.size(); j++) {
-                                                    if (words.get(j).getDp_message().equals("0")) {
-                                                        if (mContent == null) {
-                                                            mContent = new StringBuilder("<font color='green'>" + b[j] + "</font>");
-                                                        } else {
-                                                            mContent.append(" ").append("<font color='green'>").append(b[j]).append("</font>");
-                                                        }
-                                                    } else {
-                                                        if (mContent == null) {
-                                                            mContent = new StringBuilder("<font color='red'>" + b[j] + "</font>");
-                                                        } else {
-                                                            mContent.append(" ").append("<font color='red'>").append(b[j]).append("</font>");
-                                                        }
-                                                    }
-                                                }
-                                                mContent.append(".");
-                                            }
-                                        }
-                                    }
-                                    Log.d(TAG, "mContent: " + mContent);
-                                    if (mContent != null) {
-                                        String finalMContent = mContent.toString();
-                                        runOnUiThread(() -> {
-                                            tvResult.setText(Html.fromHtml(finalMContent));
-                                        });
-                                    }
-                                }
-                            }
-                        } else {
-                            mLoadingDialog.dismiss();
-                            runOnUiThread(() -> {
-                                Toast.makeText(getApplicationContext(), "识别失败,您再说一遍吧！", Toast.LENGTH_SHORT).show();
-                            });
-                        }
-                    }
-                }
-            }
-        }
     }
 
 }
