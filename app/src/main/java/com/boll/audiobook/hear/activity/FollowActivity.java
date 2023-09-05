@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
@@ -27,6 +28,7 @@ import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
 import com.boll.audiobook.hear.service.PlayService;
 import com.boll.audiobook.hear.utils.Const;
 import com.boll.audiobook.hear.utils.FileListUtil;
+import com.boll.audiobook.hear.utils.FileUtil;
 import com.boll.audiobook.hear.utils.RecordUtil;
 import com.boll.audiobook.hear.utils.SaveDataUtil;
 import com.boll.audiobook.hear.utils.WavMergeUtil;
@@ -49,6 +51,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -94,6 +97,8 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
 
     private PlayService mPlayService;
 
+    private String audioPath;
+
     private int resId;
     private List<Integer> isRecordedList;//记录每一句是否有录音 0：未录音 1：已录音
 
@@ -115,8 +120,6 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                     showToast("识别超时，请检查网络或重试！");
                 }
             } else if (message.what == STOP_RECORD) {
-//                PcmToMp3Util.pcmToMp3(position, false);
-                RecordUtil.stopRecordAudio(position);
                 isRecordedList.set(position - 1, 1);
                 SaveDataUtil.getInstance(mContext).putList("isRecordedList", isRecordedList);
                 boolean isRecordComplete = true;//录音是否完整
@@ -167,6 +170,15 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                 mLoadingDialog.dismiss();
                 if (result.getCode() == 1) {
                     //返回正常结果
+                    audioPath = result.getAudioPath();
+
+                    String folderPath = Const.RECORDPATH;
+                    File destFile = new File(folderPath);
+                    if (!destFile.exists()){
+                        destFile.mkdirs();
+                    }
+                    FileUtil.copyFile(audioPath,folderPath + "record" + position + ".wav");
+
                     int fluencyScore = (int) (result.getFluency_score() * 20);
                     int accuracyScore = (int) (result.getAccuracy_score() * 20);
                     int integrityScore = (int) (result.getIntegrity_score() * 20);
@@ -175,6 +187,8 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                     llSentenceContent.setVisibility(View.GONE);
                     llRecordHint.setVisibility(View.GONE);
                     llResultContent.setVisibility(View.VISIBLE);
+
+                    tvResult.setText(result.getContent());
 
                     fluency.setProgress(fluencyScore);
                     accuracy.setProgress(accuracyScore);
@@ -369,10 +383,8 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                 mPlayService.playCurrent();
                 break;
             case R.id.ll_play_back://回放
-//                RecordUtil.playWav(Const.RECORDPATH + "record" + position + ".wav");
-//                RecordUtil.playWav(Const.RECORDPATH + "record.pcm");
-                RecordUtil.playWavWithMediaPlayer(Const.RECORDPATH + "record" + position + ".wav");
-//                RecordUtil.playWavWithMediaPlayer(Const.RECORDPATH + "record.pcm");
+                Log.e(TAG, "audioPath: " + audioPath);
+                RecordUtil.playWavWithMediaPlayer(audioPath);
                 break;
             default:
                 break;
@@ -400,8 +412,7 @@ public class FollowActivity extends BaseActivity implements View.OnClickListener
                 animRecord.setVisibility(View.VISIBLE);
                 recordAnim.start();
                 isRecordDown = true;
-                RecordUtil.startRecordAudio();
-//                startEvaluating(false, content);
+//                RecordUtil.startRecordAudio();
 
                 mHandler.sendEmptyMessageDelayed(STOP_RECORD,500);
                 EvaluationUtils.start(mContext, content);//开始评测

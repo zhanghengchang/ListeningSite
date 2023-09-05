@@ -118,6 +118,7 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
 
             <meta-data
@@ -139,8 +140,6 @@
             android:enabled="true"
             android:exported="true">
         </receiver>
-
-        <service android:name=".evs.service.EngineService" />
 
         <provider
             android:name="com.boll.audiobook.hear.contentprovider.DownloadProvider"

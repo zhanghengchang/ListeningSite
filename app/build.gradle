@@ -24,8 +24,8 @@ android {
         applicationId "com.boll.audiobook.hear"
         minSdk 19
         targetSdk 33
-        versionCode 112
-        versionName "1.1.2"
+        versionCode 114
+        versionName "1.1.4"
 
         multiDexEnabled true
 

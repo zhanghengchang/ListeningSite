@@ -264,7 +264,7 @@
                         android:textSize="14sp"
                         android:gravity="center"
                         android:background="@drawable/bg_tv_normal"
-                        android:layout_marginLeft="16dp"/>
+                        android:layout_marginLeft="6dp"/>
 
                     <TextView
                         android:id="@+id/tv_translation"
@@ -275,7 +275,7 @@
                         android:textSize="14sp"
                         android:gravity="center"
                         android:background="@drawable/bg_tv_normal"
-                        android:layout_marginLeft="16dp"/>
+                        android:layout_marginLeft="6dp"/>
 
                 </LinearLayout>
 

@@ -45,18 +45,22 @@ public class CoverFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cover, container, false);
         initView(view);
+        loadImg(coverUrl);
+        return view;
+    }
+
+    private void initView(View view) {
+        imgCover = view.findViewById(R.id.img_cover);
+    }
+
+    public void loadImg(String coverUrl) {
         Glide.with(mContext).load(coverUrl)
                 .error(R.mipmap.icon_default)//异常时候显示的图片
                 .placeholder(R.mipmap.icon_default)//加载成功前显示的图片
                 .fallback(R.mipmap.icon_default)//url为空的时候,显示的图片
                 .apply(RequestOptions.bitmapTransform(new RoundedCorners(12)))
                 .into(imgCover);
-        Log.d(TAG, "coverUrl: " + coverUrl);
-        return view;
-    }
-
-    private void initView(View view) {
-        imgCover = view.findViewById(R.id.img_cover);
+        Log.e(TAG, "coverUrl: " + coverUrl);
     }
 
 }

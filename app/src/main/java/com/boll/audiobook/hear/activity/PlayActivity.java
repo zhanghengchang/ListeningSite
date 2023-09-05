@@ -120,9 +120,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
 
     private int repeatCount;//记录复读次数
 
-//    private String mainLrcText;
-//    private String secondLrcText;
-
     private CoverFragment coverFragment;
     private CaptionFragment captionFragment;
 
@@ -173,16 +170,15 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         Const.CURRENT_TITLE = title;
         Const.CURRENT_COVER_URL = coverUrl;
 
-        try {
-            //url包含中文需要转码
-            //对路径进行编码 然后替换路径中所有空格 编码之后空格变成“+”而空格的编码表示是“%20” 所以将所有的“+”替换成“%20”就可以了
-            Log.e(TAG, "coverUrl: " + coverUrl);
-            coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
-            //编码之后的路径中的“/”也变成编码的东西了 所有还有将其替换回来 这样才是完整的路径
-            coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            //url包含中文需要转码
+//            //对路径进行编码 然后替换路径中所有空格 编码之后空格变成“+”而空格的编码表示是“%20” 所以将所有的“+”替换成“%20”就可以了
+//            coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
+//            //编码之后的路径中的“/”也变成编码的东西了 所有还有将其替换回来 这样才是完整的路径
+//            coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         coverFragment = new CoverFragment(this, coverUrl);
         captionFragment = new CaptionFragment(this);
@@ -230,14 +226,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void initData() {
-//        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
-//        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
-//                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
-//                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
-//                + HeadUtil.getScreenWidth(this) + "/"
-//                + UUIDHexGenerator.getInstance().generateToken() + "/"
-//                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
-//                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
         Const.UA = TokenUtil.getUserLoginToken(this);
 
         mAudioBeans = new ArrayList<>();
@@ -260,8 +248,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             captionUrl = URLEncoder.encode(captionUrl, "utf-8").replaceAll("\\+", "%20");
             captionUrl = captionUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
 
-            audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
-            audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+//            audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+//            audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+
+//            coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
+//            coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -271,34 +262,11 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             public void onDismiss() {
                 int captionType = SaveDataUtil.getInstance(mContext).getInt("captionType", 1);
                 captionFragment.lrcView.loadLrcByUrl(captionUrl,captionType);
-//                if (captionType == 1) {
-//                    captionFragment.lrcView.loadLrc(mainLrcText, null);
-//                } else if (captionType == 2) {
-//                    captionFragment.lrcView.loadLrc(mainLrcText, secondLrcText);
-//                } else if (captionType == 3) {
-//                    captionFragment.lrcView.loadLrc(secondLrcText, null);
-//                }
 
                 float speed = SaveDataUtil.getInstance(mContext).getFloat("playSpeed", 1.0f);
                 mPlayService.setPlayerSpeed(speed);
             }
         });
-
-        //转换成带token的url
-//        mListenerLoader.getDownloadUrl(audioUrl).subscribe(new Action1<ResUrlResponse>() {
-//            @Override
-//            public void call(ResUrlResponse response) {
-//                String url = response.getData();
-//                audioUrl = url;
-//                mExecutorService.execute(loadRunnable);
-//            }
-//        }, new Action1<Throwable>() {
-//            @Override
-//            public void call(Throwable throwable) {
-//                throwable.printStackTrace();
-//                Toast.makeText(mContext,"加载失败，请检查网络后重试",Toast.LENGTH_SHORT).show();
-//            }
-//        });
 
         Intent sIntent = new Intent(this, PlayService.class);
         startService(sIntent);
@@ -438,28 +406,30 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             resetAB();
             audioId = audioList.get(position).getId();
             audioUrl = audioList.get(position).getAudioUrl();
+            coverUrl = audioList.get(position).getCover();
             captionUrl = audioList.get(position).getCaptionUrl();
             title = audioList.get(position).getTitle();
             tvTitle.setText(title);
 
+            try {
+                captionUrl = URLEncoder.encode(captionUrl, "utf-8").replaceAll("\\+", "%20");
+                captionUrl = captionUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+
+//                audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+//                audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+
+//                coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
+//                coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            if (coverFragment != null) {
+                coverFragment.loadImg(coverUrl);
+            }
+
             Const.CURRENT_TITLE = title;
             Const.CURRENT_COVER_URL = coverUrl;
-
-            //转换成带token的url
-//            mListenerLoader.getDownloadUrl(audioUrl).subscribe(new Action1<ResUrlResponse>() {
-//                @Override
-//                public void call(ResUrlResponse response) {
-//                    String url = response.getData();
-//                    audioUrl = url;
-//                    mExecutorService.execute(loadRunnable);
-//                }
-//            }, new Action1<Throwable>() {
-//                @Override
-//                public void call(Throwable throwable) {
-//                    throwable.printStackTrace();
-//                    Toast.makeText(mContext,"加载失败，请检查网络后重试",Toast.LENGTH_SHORT).show();
-//                }
-//            });
 
             mExecutorService.execute(loadRunnable);
         }
@@ -496,7 +466,9 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                     mAudioProgressBar.setTotalTime(totalTime);
                 }
             });
+
             int captionType = SaveDataUtil.getInstance(mContext).getInt("captionType", 1);
+            Log.e(TAG, "captionUrl: " + captionUrl);
             captionFragment.lrcView.loadLrcByUrl(captionUrl,captionType);
             captionFragment.lrcView.setOnTapListener(new LrcView.OnTapListener() {
                 @Override
@@ -555,105 +527,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
             handler.post(playRunnable);
-
-//            String[] strings = captionUrl.split("\\?");
-//            String prefixUrl = "";
-//            if (strings.length == 2) {
-//                prefixUrl = strings[0];
-//            }
-//            String[] split = prefixUrl.split("/");
-//            if (split != null && split.length > 0) {
-//                String fileName = split[split.length - 1].replace(".srt", "");
-//                long start = System.currentTimeMillis();
-//                //获取在线字幕文本
-//                String content = GetContentUtil.getContentFromNetwork(captionUrl);
-//                String enFilePath = Const.LRCPATH + File.separator + fileName + File.separator + fileName + "_en.lrc";
-//                String chFilePath = Const.LRCPATH + File.separator + fileName + File.separator + fileName + "_ch.lrc";
-//                boolean isSave = SrtToLrcUtil.saveLrcFile(content, Const.LRCPATH, fileName, enFilePath, chFilePath);
-//                long end = System.currentTimeMillis();
-//                float diff = (end - start) / 1000f;
-//                Log.d(TAG, "字幕下载耗时: " + diff + "秒");
-//                if (isSave) {
-//                    // 加载字幕文本
-//                    mainLrcText = GetContentUtil.getContentFromLocal(enFilePath);
-//                    secondLrcText = GetContentUtil.getContentFromLocal(chFilePath);
-//
-//                    int captionType = SaveDataUtil.getInstance(mContext).getInt("captionType", 1);
-//                    if (captionType == 1) {
-//                        captionFragment.lrcView.loadLrc(mainLrcText, null);
-//                    } else if (captionType == 2) {
-//                        captionFragment.lrcView.loadLrc(mainLrcText, secondLrcText);
-//                    } else if (captionType == 3) {
-//                        captionFragment.lrcView.loadLrc(secondLrcText, null);
-//                    }
-//
-//                    captionFragment.lrcView.setOnTapListener(new LrcView.OnTapListener() {
-//                        @Override
-//                        public void onTapSentence(String sentence) {
-//                            mPlayService.pause();
-//                            //点击字幕区域查词
-//                            mSearchWordDialog = new SearchWordDialog(mContext, PlayActivity.this);
-//                            mSearchWordDialog.showDialog(sentence);
-//                            mSearchWordDialog.setOnWordClickListener(new SearchWordDialog.OnWordClickListener() {
-//                                @Override
-//                                public void onWordClick(String word) {
-//
-//                                }
-//                            });
-//                            mSearchWordDialog.setOnDismissListener(new SearchWordDialog.OnDismissListener() {
-//                                @Override
-//                                public void onDismiss() {
-//                                    PlayService.getInstance().start();
-//                                }
-//                            });
-//                        }
-//                    });
-//
-//                    captionFragment.lrcView.setDraggable(true, (view, time) -> {
-//                        mPlayService.seekTo((int) time);
-//                        return true;
-//                    });
-//
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            if (!mPlayService.isSingle && mPlayService.abState != 2 && !mPlayService.isPlaying()) {
-//                                mPlayService.abState = 0;
-//                                mPlayService.play(audioUrl, audioId);
-//                            } else {
-//                                //后台当前播放如果和点击进去的曲目一样则接着播放 状态不变
-//                                if (audioId == mPlayService.currentId) {
-//                                    if (mPlayService.abState == 2) {
-//                                        captionFragment.lrcView.setPointAPosition(mPlayService.aPosition);
-//                                        captionFragment.lrcView.setPointBPosition(mPlayService.bPosition);
-//                                    }
-//                                    if (mPlayService.isSingle) {
-//                                        captionFragment.lrcView.setSinglePosition(mPlayService.currentLine);
-//                                    }
-//                                    if (mPlayService.isPause()) {
-//                                        mPlayService.start();
-//                                    }
-//                                } else {//如果不是同一曲目 则清除之前状态
-//                                    resetAB();
-//                                    mPlayService.isSingle = false;
-//                                    mPlayService.play(audioUrl, audioId);
-//                                }
-//                            }
-//                            updateAbRepeatState();
-//                            updateSingleRepeatState();
-//                        }
-//                    });
-//
-//                    handler.post(playRunnable);
-//                } else {
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            Toast.makeText(mContext,"加载失败，请检查网络后重试",Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//                }
-//            }
         }
     };
 

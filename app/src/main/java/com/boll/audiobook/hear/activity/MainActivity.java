@@ -103,14 +103,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      * 有网的情况下加载数据
      */
     private void loadData() {
-//        String oaid = TextUtils.isEmpty(DeviceID.getOAID()) ? "OAID" : DeviceID.getOAID();
-//        String ua = "client/" + HeadUtil.getAppVersion() + "/-1/" + HeadUtil.getAndroidVersion()
-//                + "/tinglibao/" + HeadUtil.getLocalMacAddressFromIp() + "/-1/-1"
-//                + "/" + getPackageName() + "/" + HeadUtil.getScreenHeight(this) + "/"
-//                + HeadUtil.getScreenWidth(this) + "/"
-//                + UUIDHexGenerator.getInstance().generateToken() + "/"
-//                + HeadUtil.getNetWorkType(this) + "/" + HeadUtil.getSerialNumber() + "/"
-//                + TokenUtil.getUserLoginToken(this) + "/" + oaid;
         Const.UA = TokenUtil.getUserLoginToken(this);
         Log.d(TAG, "UA: " + Const.UA);
 
