@@ -19,23 +19,28 @@ import com.boll.audiobook.hear.network.response.BaseResponse;
 import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
 import com.boll.audiobook.hear.utils.Const;
 import com.boll.audiobook.hear.utils.SaveDataUtil;
+import com.kuaige.player.player.IjkAudioPlayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import rx.functions.Action1;
+import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 /**
  * 后台播放服务
  */
-public class PlayService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class PlayService extends Service implements /*MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener,*/
+        IMediaPlayer.OnErrorListener, IMediaPlayer.OnPreparedListener, IMediaPlayer.OnCompletionListener {
 
     private static final String TAG = "PlayService";
 
     private Context mContext;
-    private MediaPlayer mPlayer;
+//    private MediaPlayer mPlayer;
+
+    private IjkAudioPlayer ijkAudioPlayer;
 
     public boolean hasPrepared;
 
@@ -86,8 +91,11 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
                             || (timingClose == 6 && diff >= 20)
                             || (timingClose == 7 && diff >= 30)
                             || (timingClose == 8 && diff >= 60)) {
-                        if (mPlayer != null) {
-                            mPlayer.pause();
+//                        if (mPlayer != null) {
+//                            mPlayer.pause();
+//                        }
+                        if(ijkAudioPlayer != null){
+                            ijkAudioPlayer.pause();
                         }
                         //记录是计时暂停 置一个标记
                         SaveDataUtil.getInstance(mContext).putBoolean("isTimingPause", true);
@@ -99,6 +107,27 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
             return false;
         }
     });
+
+    @Override
+    public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
+        hasPrepared = false;
+        Log.e(TAG, "onError: " + i);
+        return false;
+    }
+
+    @Override
+    public void onPrepared(IMediaPlayer iMediaPlayer) {
+        hasPrepared = true;
+        start();
+    }
+
+    @Override
+    public void onCompletion(IMediaPlayer iMediaPlayer) {
+        if (hasPrepared) {
+            hasPrepared = false;
+            mOnStateListener.onCompletion();
+        }
+    }
 
     private static class SingletonHolder {
         private static final PlayService INSTANCE = new PlayService();
@@ -118,17 +147,25 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     public void onCreate() {
         super.onCreate();
         initIfNecessary();
+        Log.d(TAG, "初始化播放服务");
         mContext = this;
         mHandler.sendEmptyMessage(TIMING_CODE);
         Const.isStartPlayService = true;
     }
 
     private void initIfNecessary() {
-        if (null == mPlayer) {
-            mPlayer = new MediaPlayer();
-            mPlayer.setOnErrorListener(this);
-            mPlayer.setOnCompletionListener(this);
-            mPlayer.setOnPreparedListener(this);
+//        if (null == mPlayer) {
+//            mPlayer = new MediaPlayer();
+//            mPlayer.setOnErrorListener(this);
+//            mPlayer.setOnCompletionListener(this);
+//            mPlayer.setOnPreparedListener(this);
+//        }
+        if (ijkAudioPlayer == null) {
+            ijkAudioPlayer = new IjkAudioPlayer();
+            ijkAudioPlayer.init();
+            ijkAudioPlayer.getPlayer().setOnErrorListener(this);
+            ijkAudioPlayer.getPlayer().setOnPreparedListener(this);
+            ijkAudioPlayer.getPlayer().setOnCompletionListener(this);
         }
     }
 
@@ -138,8 +175,11 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * @return
      */
     public boolean isPlaying() {
-        if (null != mPlayer && hasPrepared) {
-            return mPlayer.isPlaying();
+//        if (null != mPlayer && hasPrepared) {
+//            return mPlayer.isPlaying();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            return ijkAudioPlayer.getPlayer().isPlaying();
         }
         return false;
     }
@@ -150,11 +190,14 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * @param speed
      */
     public void setPlayerSpeed(float speed) {
-        if (android.os.Build.VERSION.SDK_INT >=
-                android.os.Build.VERSION_CODES.M) {
-            PlaybackParams playbackParams = mPlayer.getPlaybackParams();
-            playbackParams.setSpeed(speed);
-            mPlayer.setPlaybackParams(playbackParams);
+//        if (android.os.Build.VERSION.SDK_INT >=
+//                android.os.Build.VERSION_CODES.M) {
+//            PlaybackParams playbackParams = mPlayer.getPlaybackParams();
+//            playbackParams.setSpeed(speed);
+//            mPlayer.setPlaybackParams(playbackParams);
+//        }
+        if (ijkAudioPlayer != null){
+            ijkAudioPlayer.setSpeed(speed);
         }
     }
 
@@ -167,20 +210,6 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
     public void play(String url, int id) {
         float speed = SaveDataUtil.getInstance(mContext).getFloat("playSpeed", 1.0f);
         Log.d(TAG, "playUrl: " + url);
-//        String[] strings = url.split("\\?");
-//        String path = "";
-//        if (strings.length == 2) {
-//            path = strings[0];
-//            String[] split = path.split("/");
-//            String fileName = split[split.length - 1];
-//            if (DownloadUtil.existsFile(Const.MP3PATH + fileName)) {
-//                path = Const.MP3PATH + fileName;
-//            } else {
-//                path = url;
-//            }
-//        }
-//        Log.d(TAG, "playPath: " + path);
-
         hasPrepared = false;// 开始播放前将flag置为不可操作
         currentId = id;
         if (mOnCurrentPlayIdListeners.size() > 0) {
@@ -188,17 +217,29 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
                 mOnCurrentPlayIdListeners.get(i).onCurrentPlayId(id);
             }
         }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    mPlayer.reset();
+//                    mPlayer.setDataSource(url);
+//                    mPlayer.prepareAsync();
+//                    setPlayerSpeed(speed);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
         initIfNecessary();
-//        String finalPath = path;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mPlayer.reset();
-                    mPlayer.setDataSource(url);
-                    mPlayer.prepareAsync();
+                    ijkAudioPlayer.reset();
+                    ijkAudioPlayer.setPathAndPrepare(url);
                     setPlayerSpeed(speed);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -220,7 +261,10 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 上一曲
      */
     public void playLeft() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            mOnStateListener.onPlayLeft();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             mOnStateListener.onPlayLeft();
         }
     }
@@ -229,7 +273,10 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 下一曲
      */
     public void playRight() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            mOnStateListener.onPlayRight();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             mOnStateListener.onPlayRight();
         }
     }
@@ -238,7 +285,10 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 上一句
      */
     public void playSentenceLeft() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            mOnStateListener.onSentenceLeft();
+//        }
+        if (null != mOnStateListener && hasPrepared) {
             mOnStateListener.onSentenceLeft();
         }
     }
@@ -247,7 +297,10 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 下一句
      */
     public void playSentenceRight() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            mOnStateListener.onSentenceRight();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             mOnStateListener.onSentenceRight();
         }
     }
@@ -256,7 +309,24 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 开始播放
      */
     public void start() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            boolean lastPause = SaveDataUtil.getInstance(mContext).getBoolean("isTimingPause", false);
+//            long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
+//            if (playStartTime == 0) {
+//                long startTime = System.currentTimeMillis();
+//                SaveDataUtil.getInstance(mContext).putLong("playStartTime", startTime);
+//            }
+//            if (lastPause) {
+//                Log.e(TAG, "继续播放 重新计时");
+//                //如果上次是计时暂停，则此次重新开始计时
+//                long startTiming = System.currentTimeMillis();
+//                SaveDataUtil.getInstance(mContext).putLong("startTiming", startTiming);
+//                SaveDataUtil.getInstance(mContext).putBoolean("isTimingPause", false);
+//            }
+//            mPlayer.start();
+//            isPause = false;
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             boolean lastPause = SaveDataUtil.getInstance(mContext).getBoolean("isTimingPause", false);
             long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
             if (playStartTime == 0) {
@@ -270,7 +340,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
                 SaveDataUtil.getInstance(mContext).putLong("startTiming", startTiming);
                 SaveDataUtil.getInstance(mContext).putBoolean("isTimingPause", false);
             }
-            mPlayer.start();
+            ijkAudioPlayer.start();
             isPause = false;
         }
     }
@@ -279,7 +349,40 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 暂停并上传本次听音时长
      */
     public void pause() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
+//            long endTime = System.currentTimeMillis();
+//            if (playStartTime != 0){
+//                int diff = TimeUtil.getDiffTimeMin(playStartTime, endTime);
+//                Log.e(TAG, "diff: " + diff);
+//                if (diff > 1) {
+//                    int diffSec = TimeUtil.getDiffTimeSec(playStartTime, endTime);
+//                    Log.e(TAG, "playStartTime: " + playStartTime + ",endTime: " + endTime);
+//                    DurationRequest request = new DurationRequest();
+//                    request.setDuration(diffSec);
+//                    mListenerLoader = ListenerLoader.getInstance();
+//                    SaveDataUtil.getInstance(mContext).putLong("playStartTime", 0);
+//                    mListenerLoader.addAudioDuration(request).subscribe(new Action1<BaseResponse>() {
+//                        @Override
+//                        public void call(BaseResponse response) {
+//                            if (response.getCode() == 0) {
+//                                Log.e(TAG, "已上报听音时长" + diffSec + "秒");
+//                            } else {
+//                                Log.e(TAG, response.getMsg());
+//                            }
+//                        }
+//                    }, new Action1<Throwable>() {
+//                        @Override
+//                        public void call(Throwable throwable) {
+//                            throwable.printStackTrace();
+//                        }
+//                    });
+//                }
+//            }
+//            mPlayer.pause();
+//            isPause = true;
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             long playStartTime = SaveDataUtil.getInstance(mContext).getLong("playStartTime", 0);
             long endTime = System.currentTimeMillis();
             if (playStartTime != 0){
@@ -309,7 +412,7 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
                     });
                 }
             }
-            mPlayer.pause();
+            ijkAudioPlayer.pause();
             isPause = true;
         }
     }
@@ -318,8 +421,12 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 单纯暂停播放
      */
     public void pauseAudio() {
-        if (null != mPlayer && hasPrepared) {
-            mPlayer.pause();
+//        if (null != mPlayer && hasPrepared) {
+//            mPlayer.pause();
+//            isPause = true;
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            ijkAudioPlayer.pause();
             isPause = true;
         }
     }
@@ -328,11 +435,18 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 播放当前句子
      */
     public void playCurrent() {
-        if (null != mPlayer && hasPrepared) {
+//        if (null != mPlayer && hasPrepared) {
+//            isFollow = true;
+//            mPlayer.seekTo((int) currentStartTime);
+//            if (!mPlayer.isPlaying()) {
+//                mPlayer.start();
+//            }
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
             isFollow = true;
-            mPlayer.seekTo((int) currentStartTime);
-            if (!mPlayer.isPlaying()) {
-                mPlayer.start();
+            ijkAudioPlayer.seekTo((int) currentStartTime);
+            if (!ijkAudioPlayer.isPlaying()) {
+                ijkAudioPlayer.start();
             }
         }
     }
@@ -352,8 +466,11 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * @param position
      */
     public void seekTo(int position) {
-        if (null != mPlayer && hasPrepared) {
-            mPlayer.seekTo(position);
+//        if (null != mPlayer && hasPrepared) {
+//            mPlayer.seekTo(position);
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            ijkAudioPlayer.seekTo(position);
         }
     }
 
@@ -361,8 +478,11 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * 停止播放
      */
     public void stop() {
-        if (null != mPlayer && hasPrepared) {
-            mPlayer.stop();
+//        if (null != mPlayer && hasPrepared) {
+//            mPlayer.stop();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            ijkAudioPlayer.stop();
         }
     }
 
@@ -371,9 +491,12 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      */
     public void release() {
         hasPrepared = false;
-        mPlayer.stop();
-        mPlayer.release();
-        mPlayer = null;
+//        mPlayer.stop();
+//        mPlayer.release();
+//        mPlayer = null;
+        ijkAudioPlayer.stop();
+        ijkAudioPlayer.release();
+        ijkAudioPlayer = null;
     }
 
     /**
@@ -382,39 +505,45 @@ public class PlayService extends Service implements MediaPlayer.OnPreparedListen
      * @return
      */
     public long getCurrentPosition() {
-        if (null != mPlayer && hasPrepared) {
-            return mPlayer.getCurrentPosition();
+//        if (null != mPlayer && hasPrepared) {
+//            return mPlayer.getCurrentPosition();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            return ijkAudioPlayer.getCurrentPosition();
         }
         return 0;
     }
 
     public long getDuration(){
-        if (null != mPlayer && hasPrepared) {
-            return mPlayer.getDuration();
+//        if (null != mPlayer && hasPrepared) {
+//            return mPlayer.getDuration();
+//        }
+        if (null != ijkAudioPlayer && hasPrepared) {
+            return ijkAudioPlayer.getDuration();
         }
         return 0;
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        hasPrepared = true;
-        start();
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        if (hasPrepared) {
-//            hasPrepared = false;
-            mOnStateListener.onCompletion();
-        }
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        hasPrepared = false;
-        Log.e(TAG, "onError: " + what);
-        return false;
-    }
+//    @Override
+//    public void onPrepared(MediaPlayer mp) {
+//        hasPrepared = true;
+//        start();
+//    }
+//
+//    @Override
+//    public void onCompletion(MediaPlayer mp) {
+//        if (hasPrepared) {
+////            hasPrepared = false;
+//            mOnStateListener.onCompletion();
+//        }
+//    }
+//
+//    @Override
+//    public boolean onError(MediaPlayer mp, int what, int extra) {
+//        hasPrepared = false;
+//        Log.e(TAG, "onError: " + what);
+//        return false;
+//    }
 
     @Override
     public void onDestroy() {

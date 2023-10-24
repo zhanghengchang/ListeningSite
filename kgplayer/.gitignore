@@ -1,0 +1,6 @@
+/build/
+/build/.transforms/
+/build/generated/
+/build/intermediates/
+/build/outputs/
+/build/tmp/

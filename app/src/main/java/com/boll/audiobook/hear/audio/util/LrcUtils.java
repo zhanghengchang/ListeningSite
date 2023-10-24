@@ -161,7 +161,7 @@ public class LrcUtils {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
-            Log.e(TAG, "getContentFromNetwork code: " + conn.getResponseCode());
+            Log.d(TAG, "getContentFromNetwork code: " + conn.getResponseCode());
             if (conn.getResponseCode() == 200) {
                 InputStream is = conn.getInputStream();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();

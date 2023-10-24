@@ -1,15 +1,9 @@
 package com.boll.audiobook.hear.activity;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -18,16 +12,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.boll.audiolib.entity.LrcEntry;
-import com.boll.audiolib.util.DownloadUtil;
-import com.boll.audiolib.util.GetContentUtil;
-import com.boll.audiolib.util.SrtToLrcUtil;
-import com.boll.audiolib.util.TimeUtil;
-import com.boll.audiolib.view.LrcView;
 import com.boll.audiobook.hear.R;
 import com.boll.audiobook.hear.adapter.ContentPagerAdapter;
 import com.boll.audiobook.hear.entity.AudioBean;
@@ -36,24 +26,23 @@ import com.boll.audiobook.hear.fragment.CoverFragment;
 import com.boll.audiobook.hear.network.request.RecentPlayRequest;
 import com.boll.audiobook.hear.network.response.AudioResponse;
 import com.boll.audiobook.hear.network.response.BaseResponse;
-import com.boll.audiobook.hear.network.response.ResUrlResponse;
 import com.boll.audiobook.hear.network.retrofit.ListenerLoader;
 import com.boll.audiobook.hear.service.PlayService;
 import com.boll.audiobook.hear.utils.Const;
-import com.boll.audiobook.hear.utils.HeadUtil;
 import com.boll.audiobook.hear.utils.SaveDataUtil;
 import com.boll.audiobook.hear.utils.TokenUtil;
-import com.boll.audiobook.hear.utils.UUIDHexGenerator;
 import com.boll.audiobook.hear.view.AudioListDialog;
 import com.boll.audiobook.hear.view.AudioProgressBar;
 import com.boll.audiobook.hear.view.CollectDialog;
 import com.boll.audiobook.hear.view.SearchWordDialog;
 import com.boll.audiobook.hear.view.SettingDialog;
-import com.github.gzuliyujiang.oaid.DeviceID;
+import com.boll.audiolib.entity.LrcEntry;
+import com.boll.audiolib.util.DownloadUtil;
+import com.boll.audiolib.util.TimeUtil;
+import com.boll.audiolib.view.LrcView;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -170,16 +159,6 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         Const.CURRENT_TITLE = title;
         Const.CURRENT_COVER_URL = coverUrl;
 
-//        try {
-//            //url包含中文需要转码
-//            //对路径进行编码 然后替换路径中所有空格 编码之后空格变成“+”而空格的编码表示是“%20” 所以将所有的“+”替换成“%20”就可以了
-//            coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
-//            //编码之后的路径中的“/”也变成编码的东西了 所有还有将其替换回来 这样才是完整的路径
-//            coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
         coverFragment = new CoverFragment(this, coverUrl);
         captionFragment = new CaptionFragment(this);
 
@@ -247,12 +226,8 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
         try {
             captionUrl = URLEncoder.encode(captionUrl, "utf-8").replaceAll("\\+", "%20");
             captionUrl = captionUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-
-//            audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
-//            audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-
-//            coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
-//            coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+            audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+            audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -414,17 +389,13 @@ public class PlayActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 captionUrl = URLEncoder.encode(captionUrl, "utf-8").replaceAll("\\+", "%20");
                 captionUrl = captionUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-
-//                audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
-//                audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
-
-//                coverUrl = URLEncoder.encode(coverUrl, "utf-8").replaceAll("\\+", "%20");
-//                coverUrl = coverUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
+                audioUrl = URLEncoder.encode(audioUrl, "utf-8").replaceAll("\\+", "%20");
+                audioUrl = audioUrl.replaceAll("%3A", ":").replaceAll("%2F", "/");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
 
-            if (coverFragment != null) {
+            if (coverFragment.isAdded()) {
                 coverFragment.loadImg(coverUrl);
             }
 

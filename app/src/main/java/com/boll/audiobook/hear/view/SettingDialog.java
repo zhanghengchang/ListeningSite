@@ -3,6 +3,7 @@ package com.boll.audiobook.hear.view;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -89,8 +90,8 @@ public class SettingDialog extends BaseDialog implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_setting);
-        setCanceledOnTouchOutside(false);
-        setCancelable(false);
+//        setCanceledOnTouchOutside(false);
+//        setCancelable(false);
         initView();
     }
 
@@ -192,6 +193,25 @@ public class SettingDialog extends BaseDialog implements View.OnClickListener {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 autoNext = isChecked;
+            }
+        });
+
+        this.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //保存所选择的设置
+                SaveDataUtil.getInstance(mContext).putInt("repeatCount", repeatCount);
+                SaveDataUtil.getInstance(mContext).putInt("intervalTime", intervalTime);
+                SaveDataUtil.getInstance(mContext).putBoolean("autoNext", autoNext);
+                SaveDataUtil.getInstance(mContext).putInt("captionType", captionType);
+                SaveDataUtil.getInstance(mContext).putInt("playMode", playMode);
+                SaveDataUtil.getInstance(mContext).putFloat("playSpeed", playSpeed);
+                SaveDataUtil.getInstance(mContext).putInt("timingClose", timingClose);
+
+                long startTiming = System.currentTimeMillis();//开始计时时间
+                SaveDataUtil.getInstance(mContext).putLong("startTiming", startTiming);
+
+                mOnDismissListener.onDismiss();
             }
         });
 
