@@ -19,12 +19,6 @@ public class IjkAudioPlayer {
         if (ijkMediaPlayer == null) {
             ijkMediaPlayer = new IjkMediaPlayer();
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 0);
-            // >6.0的情况 使用 避免变速变调
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 0);
-//            } else {
-//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 1);
-//            }
         }
         ijkMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
